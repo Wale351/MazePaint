@@ -1381,6 +1381,37 @@ async function walletExistsSupabase(walletAddress) {
   }
 }
 
+async function getUserByNameSupabase(userName) {
+  if (!supabaseEnabled || !supabaseClient) return null;
+  try {
+    const { data, error } = await supabaseClient
+      .from('maze_users')
+      .select('user_name,wallet_address,display_name,avatar_url,onboarded')
+      .eq('user_name', userName)
+      .limit(1);
+    if (error || !Array.isArray(data) || !data.length) return null;
+    return data[0] || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+async function getUserByCredentialsSupabase(userName, walletAddress) {
+  if (!supabaseEnabled || !supabaseClient) return null;
+  try {
+    const { data, error } = await supabaseClient
+      .from('maze_users')
+      .select('user_name,wallet_address,display_name,avatar_url,onboarded')
+      .eq('user_name', userName)
+      .eq('wallet_address', walletAddress)
+      .limit(1);
+    if (error || !Array.isArray(data) || !data.length) return null;
+    return data[0] || null;
+  } catch (_) {
+    return null;
+  }
+}
+
 async function upsertUserSupabase(userName, walletAddress, displayName, avatarUrl, onboarded) {
   if (!supabaseEnabled || !supabaseClient) return;
   try {
@@ -4371,9 +4402,25 @@ if (signupBtnEl) signupBtnEl.addEventListener('click', async () => {
   if (!uname) { alert('Enter a username.'); return; }
   if (!walletValid(wallet)) { alert('Enter a valid EVM wallet address (0x + 40 hex chars).'); return; }
   if (!avatar) { alert('Upload an image.'); return; }
-  if (usersDb[uname]) { alert('Username already exists. Please sign in.'); return; }
-  if (walletExistsLocal(wallet)) { alert('Wallet address already exists.'); return; }
   await initSupabase();
+
+  // Stale local records can remain after DB reset; reconcile with Supabase before blocking signup.
+  if (usersDb[uname]) {
+    const remote = await getUserByNameSupabase(uname);
+    if (remote) { alert('Username already exists. Please sign in.'); return; }
+    delete usersDb[uname];
+    persistUsersDb();
+  }
+  if (walletExistsLocal(wallet)) {
+    const remoteWalletExists = await walletExistsSupabase(wallet);
+    if (remoteWalletExists) { alert('Wallet address already exists.'); return; }
+    for (const key of Object.keys(usersDb)) {
+      const rec = usersDb[key];
+      if (rec && normalizeWallet(rec.wallet || '') === wallet) delete usersDb[key];
+    }
+    persistUsersDb();
+  }
+
   if (await usernameExistsSupabase(uname)) { alert('Username already exists on database. Please choose another.'); return; }
   if (await walletExistsSupabase(wallet)) { alert('Wallet address already exists on database.'); return; }
   usersDb[uname] = { name: nameRaw.slice(0, 24), wallet, avatar, onboarded: false };
@@ -4400,8 +4447,20 @@ if (signupBtnEl) signupBtnEl.addEventListener('click', async () => {
 if (signinBtnEl) signinBtnEl.addEventListener('click', async () => {
   const uname = normalizeUserName(signinNameEl.value);
   const wallet = normalizeWallet(signinWalletEl.value);
-  const rec = usersDb[uname];
-  if (!rec || normalizeWallet(rec.wallet) !== wallet) { alert('Invalid username or EVM wallet address.'); return; }
+  await initSupabase();
+  let rec = usersDb[uname];
+  if (!rec || normalizeWallet(rec.wallet) !== wallet) {
+    const remote = await getUserByCredentialsSupabase(uname, wallet);
+    if (!remote) { alert('Invalid username or EVM wallet address.'); return; }
+    rec = {
+      name: (remote.display_name || uname).slice(0, 24),
+      wallet: normalizeWallet(remote.wallet_address || wallet),
+      avatar: remote.avatar_url || '',
+      onboarded: !!remote.onboarded
+    };
+    usersDb[uname] = rec;
+    persistUsersDb();
+  }
   setCurrentUser(uname);
   playerProfile = { name: rec.name, avatar: rec.avatar };
   loadUserState();
@@ -4412,7 +4471,6 @@ if (signinBtnEl) signinBtnEl.addEventListener('click', async () => {
   refreshProfileEditingState();
   renderAchievements();
   setSlider(Math.max(0, DIFF_MODES.indexOf(difficulty)), false);
-  await initSupabase();
   await upsertUserSupabase(uname, rec.wallet, rec.name, rec.avatar, !!rec.onboarded);
   await pullUserDataFromSupabase();
   refreshContinueButton();
