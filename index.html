@@ -855,6 +855,7 @@ let runSaveStore = {};
 let supabaseClient = null;
 let supabaseEnabled = false;
 let supabaseInitTried = false;
+let supabaseRuntimeConfig = null;
 let timerRemainingMs = 0;
 let timerHandle = 0;
 let timerWaves = 0;
@@ -1279,25 +1280,52 @@ function persistLeaderboard() {
 function getSupabaseConfig() {
   const fromWindowUrl = typeof window !== 'undefined' ? window.MAZE_PAINT_SUPABASE_URL : '';
   const fromWindowKey = typeof window !== 'undefined' ? window.MAZE_PAINT_SUPABASE_ANON_KEY : '';
+  const fromRuntimeUrl = supabaseRuntimeConfig && supabaseRuntimeConfig.url ? supabaseRuntimeConfig.url : '';
+  const fromRuntimeKey = supabaseRuntimeConfig && supabaseRuntimeConfig.key ? supabaseRuntimeConfig.key : '';
   let fromStorageUrl = '';
   let fromStorageKey = '';
   try {
     fromStorageUrl = localStorage.getItem(SUPABASE_URL_KEY) || '';
     fromStorageKey = localStorage.getItem(SUPABASE_ANON_KEY) || '';
   } catch (_) {}
-  const url = String(fromWindowUrl || fromStorageUrl || '').trim();
-  const key = String(fromWindowKey || fromStorageKey || '').trim();
+  const url = String(fromWindowUrl || fromRuntimeUrl || fromStorageUrl || '').trim();
+  const key = String(fromWindowKey || fromRuntimeKey || fromStorageKey || '').trim();
   if (!url || !key) return null;
   if (!/^https:\/\/.+\.supabase\.co$/i.test(url)) return null;
   return { url, key };
 }
 
+async function loadSupabaseRuntimeConfig() {
+  if (supabaseRuntimeConfig && supabaseRuntimeConfig.url && supabaseRuntimeConfig.key) return supabaseRuntimeConfig;
+  try {
+    const res = await fetch('/api/config', { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const url = String((data && data.supabaseUrl) || '').trim();
+    const key = String((data && data.supabaseAnonKey) || '').trim();
+    if (!url || !key) return null;
+    if (!/^https:\/\/.+\.supabase\.co$/i.test(url)) return null;
+    supabaseRuntimeConfig = { url, key };
+    try {
+      localStorage.setItem(SUPABASE_URL_KEY, url);
+      localStorage.setItem(SUPABASE_ANON_KEY, key);
+    } catch (_) {}
+    return supabaseRuntimeConfig;
+  } catch (_) {
+    return null;
+  }
+}
+
 async function initSupabase() {
-  if (supabaseInitTried) return supabaseEnabled;
+  if (supabaseEnabled && supabaseClient) return true;
   supabaseInitTried = true;
   try {
     if (!window.supabase || typeof window.supabase.createClient !== 'function') return false;
-    const cfg = getSupabaseConfig();
+    let cfg = getSupabaseConfig();
+    if (!cfg) {
+      await loadSupabaseRuntimeConfig();
+      cfg = getSupabaseConfig();
+    }
     if (!cfg) return false;
     supabaseClient = window.supabase.createClient(cfg.url, cfg.key);
     supabaseEnabled = !!supabaseClient;
