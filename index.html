@@ -1192,6 +1192,7 @@ function loadUserState() {
     };
     persistPlayerProfile();
   }
+  bootstrapCoreContent();
   if (savedRun && DIFF_MODES.includes(savedRun.difficulty)) difficulty = savedRun.difficulty;
 }
 
@@ -1453,7 +1454,7 @@ async function pullUserDataFromSupabase() {
     if (error || !Array.isArray(data) || !data.length) return;
     const row = data[0] || {};
     const remoteSaved = normalizeSavedLevelsObject(row.saved_levels || {});
-    const merged = { ...remoteSaved, ...savedBuildLevels };
+    const merged = { ...savedBuildLevels, ...remoteSaved };
     savedBuildLevels = merged;
     persistSavedBuildLevels();
     if (Array.isArray(row.daily_pool) && row.daily_pool.length) {
@@ -2157,6 +2158,104 @@ function getModeSeedCap(mode) {
   if (mode === 'Normal') return 22;
   if (mode === 'Hard') return 12;
   return 10; // Extra Hard default
+}
+
+function generateSeededPackLevel(mode, level) {
+  const seed = hashText(`core-pack-v2|${mode}|${level}`);
+  return withSeededRandom(seed, () => {
+    for (let i = 0; i < 260; i++) {
+      const cand = generateModeInfinityLevel(mode, level + i, false);
+      if (!cand) continue;
+      if (!cand.rows || !cand.cols) continue;
+      if (cand.g.length !== cand.rows * cand.cols) continue;
+      if (cand.sr < 0 || cand.sc < 0 || cand.sr >= cand.rows || cand.sc >= cand.cols) continue;
+      if (cand.g[ri(cand.sr, cand.sc, cand.cols)] !== 1) continue;
+      if (!robustSolvableRect(cand.g, cand.rows, cand.cols, cand.sr, cand.sc)) continue;
+      return cand;
+    }
+    return buildGuaranteedModeLevel(mode, level, false);
+  });
+}
+
+function generateSeededDailyChallenge(index) {
+  const seed = hashText(`daily-pack-v2|${index}`);
+  return withSeededRandom(seed, () => {
+    for (let i = 0; i < 500; i++) {
+      const rows = rng(14, 24);
+      const cols = rng(14, 24);
+      const g = new Int8Array(rows * cols).fill(1);
+      const style = (index + i) % 6;
+      const obs = Math.min(0.58, 0.42 + ((index + i) % 5) * 0.03);
+      applyStyleRect(g, rows, cols, style, obs);
+      const best = pickStartRect(g, rows, cols);
+      const sr = best[0], sc = best[1];
+      if (g[ri(sr, sc, cols)] !== 1) continue;
+      if (!robustSolvableRect(g, rows, cols, sr, sc)) continue;
+      if (!modeChallengeOK('Extra Hard', g, rows, cols, sr, sc)) continue;
+      return { g, rows, cols, sr, sc, wk: walkCountRect(g, rows, cols) };
+    }
+    const forced = buildGuaranteedModeLevel('Extra Hard', 3000 + index, false);
+    return {
+      g: forced.g,
+      rows: forced.rows,
+      cols: forced.cols,
+      sr: forced.sr,
+      sc: forced.sc,
+      wk: forced.wk
+    };
+  });
+}
+
+function bootstrapCoreContent() {
+  let changedLevels = false;
+  let changedDaily = false;
+
+  for (let lv = 1; lv <= 22; lv++) {
+    if (getSavedBuiltLevel('Normal', lv)) continue;
+    const gen = generateSeededPackLevel('Normal', lv);
+    savedBuildLevels[levelKey('Normal', lv)] = {
+      rows: gen.rows,
+      cols: gen.cols,
+      sr: gen.sr,
+      sc: gen.sc,
+      wk: gen.wk,
+      g: Array.from(gen.g)
+    };
+    changedLevels = true;
+  }
+
+  for (let lv = 1; lv <= 10; lv++) {
+    if (getSavedBuiltLevel('Extra Hard', lv)) continue;
+    const gen = generateSeededPackLevel('Extra Hard', lv);
+    savedBuildLevels[levelKey('Extra Hard', lv)] = {
+      rows: gen.rows,
+      cols: gen.cols,
+      sr: gen.sr,
+      sc: gen.sc,
+      wk: gen.wk,
+      g: Array.from(gen.g)
+    };
+    changedLevels = true;
+  }
+
+  if (changedLevels) persistSavedBuildLevels();
+
+  const pool = loadDailyCustomPool();
+  const sigs = new Set(pool.map(l => hashLevelSource(l.g, l.rows, l.cols, l.sr, l.sc)));
+  const minDailyPool = 24;
+  for (let i = pool.length; i < minDailyPool; i++) {
+    const gen = generateSeededDailyChallenge(i + 1);
+    const sig = hashLevelSource(gen.g, gen.rows, gen.cols, gen.sr, gen.sc);
+    if (sigs.has(sig)) continue;
+    sigs.add(sig);
+    pool.push(gen);
+    changedDaily = true;
+  }
+  if (changedDaily) saveDailyCustomPool(pool);
+
+  if (changedLevels || changedDaily) {
+    void pushUserDataToSupabase();
+  }
 }
 
 function getModeInfinityProfile(mode) {
