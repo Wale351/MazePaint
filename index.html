@@ -1368,6 +1368,73 @@ async function upsertUserSupabase(userName, walletAddress, displayName, avatarUr
   } catch (_) {}
 }
 
+function normalizeSavedLevelsObject(obj) {
+  if (!obj || typeof obj !== 'object') return {};
+  const out = {};
+  for (const k of Object.keys(obj)) {
+    const it = obj[k];
+    if (!it || !Array.isArray(it.g)) continue;
+    const rows = (it.rows | 0) || (it.size | 0);
+    const cols = (it.cols | 0) || (it.size | 0);
+    if (!rows || !cols || it.g.length !== rows * cols) continue;
+    out[k] = {
+      rows,
+      cols,
+      sr: it.sr | 0,
+      sc: it.sc | 0,
+      wk: it.wk | 0,
+      g: it.g.slice()
+    };
+  }
+  return out;
+}
+
+function dailyPoolLevelsToRaw(levels) {
+  if (!Array.isArray(levels)) return [];
+  return levels.map(l => ({
+    g: Array.from(l.g),
+    rows: l.rows,
+    cols: l.cols,
+    sr: l.sr,
+    sc: l.sc
+  }));
+}
+
+async function pushUserDataToSupabase() {
+  if (!supabaseEnabled || !supabaseClient || !currentUserName) return;
+  try {
+    await supabaseClient
+      .from('maze_user_data')
+      .upsert({
+        user_name: currentUserName,
+        saved_levels: savedBuildLevels,
+        daily_pool: dailyPoolLevelsToRaw(loadDailyCustomPool()),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_name' });
+  } catch (_) {}
+}
+
+async function pullUserDataFromSupabase() {
+  if (!supabaseEnabled || !supabaseClient || !currentUserName) return;
+  try {
+    const { data, error } = await supabaseClient
+      .from('maze_user_data')
+      .select('saved_levels,daily_pool')
+      .eq('user_name', currentUserName)
+      .limit(1);
+    if (error || !Array.isArray(data) || !data.length) return;
+    const row = data[0] || {};
+    const remoteSaved = normalizeSavedLevelsObject(row.saved_levels || {});
+    const merged = { ...remoteSaved, ...savedBuildLevels };
+    savedBuildLevels = merged;
+    persistSavedBuildLevels();
+    if (Array.isArray(row.daily_pool) && row.daily_pool.length) {
+      const pool = row.daily_pool.map(dailyPoolItemToLevel).filter(Boolean);
+      if (pool.length) saveDailyCustomPool(pool);
+    }
+  } catch (_) {}
+}
+
 async function pushLeaderboardToSupabase(item) {
   if (!supabaseEnabled || !supabaseClient || !item) return;
   try {
