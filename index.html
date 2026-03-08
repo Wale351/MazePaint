@@ -1813,6 +1813,7 @@ function addDailyCustomLevel(payload) {
   const exists = pool.some(l => hashLevelSource(l.g, l.rows, l.cols, l.sr, l.sc) === sig);
   if (!exists) pool.push(payload);
   saveDailyCustomPool(pool);
+  void pushUserDataToSupabase();
   return pool.length;
 }
 
@@ -2059,6 +2060,7 @@ function saveBuiltLevel(mode, level, payload) {
     g: Array.from(payload.g)
   };
   persistSavedBuildLevels();
+  void pushUserDataToSupabase();
 }
 
 function getSavedBuiltLevel(mode, level) {
@@ -4285,6 +4287,8 @@ if (signinBtnEl) signinBtnEl.addEventListener('click', async () => {
   setSlider(Math.max(0, DIFF_MODES.indexOf(difficulty)), false);
   await initSupabase();
   await upsertUserSupabase(uname, rec.wallet, rec.name, rec.avatar, !!rec.onboarded);
+  await pullUserDataFromSupabase();
+  refreshContinueButton();
   if (!rec.onboarded) {
     onboardingNameEl.value = rec.name;
     onboardingNameEl.readOnly = true;
@@ -4368,6 +4372,8 @@ void initSupabase().then(async ok => {
   if (!ok) return;
   if (currentUserName) {
     await syncProfileToSupabase();
+    await pullUserDataFromSupabase();
+    refreshContinueButton();
     await pullLeaderboardFromSupabase();
   }
 });
