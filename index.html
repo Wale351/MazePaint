@@ -397,14 +397,14 @@ html,body{
   .editor-title{font-size:12px;letter-spacing:1.5px}
   .editor-meta{font-size:10px}
   .editor-target{
-    display:grid;
-    grid-template-columns:repeat(2, minmax(0,1fr));
-    gap:8px;
-    align-items:end;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    align-items:stretch;
   }
   .editor-target label{
     font-size:10px;
-    margin-bottom:3px;
+    margin:2px 0 0;
   }
   .editor-target select,.editor-target input{
     min-width:0;
@@ -1098,7 +1098,10 @@ function hideLoading() {
 
 async function withLoading(msg, fn) {
   showLoading(msg);
-  try { return await fn(); } finally { hideLoading(); }
+  try {
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    return await fn();
+  } finally { hideLoading(); }
 }
 
 /* ── UTILS ── */
@@ -2068,7 +2071,9 @@ function pushLeaderboardEntry() {
   leaderboard.sort((a, b) => b.score - a.score || (a.at < b.at ? 1 : -1));
   leaderboard = leaderboard.slice(0, LEADERBOARD_MAX);
   persistLeaderboard();
+  renderLeaderboard();
   void pushLeaderboardToSupabase(item);
+  void pullLeaderboardFromSupabase();
 }
 
 function renderLeaderboard() {
@@ -3711,6 +3716,7 @@ function showMotive(onDone) {
 ════════════════════════════════════════ */
 function startLevel() {
   showLoading('Building maze...');
+  setTimeout(() => {
   isSliding = false;
   inputLocked = true;
   levelCompleteTriggered = false;
@@ -3853,6 +3859,7 @@ function startLevel() {
     inputLocked = false;
     hideLoading();
   }));
+  }, 0);
 }
 
 function restartLevel() {
