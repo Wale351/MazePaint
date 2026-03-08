@@ -315,7 +315,14 @@ html,body{
 .game-footer .btn{font-size:13px;padding:12px 24px}
 
 /* ══ LEVEL EDITOR ══ */
-#editor-screen{padding:16px 14px 20px;justify-content:flex-start;gap:12px}
+#editor-screen{
+  padding:16px 14px 20px;
+  justify-content:flex-start;
+  gap:12px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+}
 .editor-header{
   width:100%;max-width:560px;
   display:flex;align-items:center;justify-content:space-between;
@@ -375,6 +382,82 @@ html,body{
   display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
 }
 .editor-footer .btn{font-size:12px;padding:11px 16px}
+
+@media (max-width: 900px){
+  #editor-screen{padding:12px 10px 16px;gap:10px}
+  .editor-header,.editor-status,.editor-target,.editor-toolbar,.editor-footer,#editor-board-wrap{
+    max-width:100%;
+  }
+}
+
+@media (max-width: 680px){
+  .editor-header{
+    padding:4px 2px 2px;
+  }
+  .editor-title{font-size:12px;letter-spacing:1.5px}
+  .editor-meta{font-size:10px}
+  .editor-target{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    gap:8px;
+    align-items:end;
+  }
+  .editor-target label{
+    font-size:10px;
+    margin-bottom:3px;
+  }
+  .editor-target select,.editor-target input{
+    min-width:0;
+    width:100%;
+    padding:8px 9px;
+    font-size:12px;
+  }
+  .editor-target #editor-grid-apply,
+  .editor-target #editor-autogen{
+    width:100%;
+    padding:10px 10px;
+  }
+  .editor-toolbar{
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0,1fr));
+    gap:8px;
+  }
+  .editor-toolbar .btn{
+    width:100%;
+    padding:9px 8px;
+    font-size:11px;
+  }
+  #editor-board-wrap{
+    min-height:220px;
+    padding:2px 0;
+  }
+  #editor-canvas{
+    max-width:100%;
+    height:auto;
+  }
+  .editor-footer{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    gap:8px;
+  }
+  .editor-footer .btn{
+    width:100%;
+    padding:10px 10px;
+    font-size:11px;
+  }
+}
+
+@media (max-width: 420px){
+  .editor-target{
+    grid-template-columns:1fr;
+  }
+  .editor-toolbar{
+    grid-template-columns:1fr;
+  }
+  .editor-footer{
+    grid-template-columns:1fr;
+  }
+}
 
 /* ══ ONBOARD / LEADERBOARD ══ */
 .card{
@@ -470,6 +553,59 @@ html,body{
   position:fixed;inset:0;
   pointer-events:none;
   z-index:290;
+}
+
+/* Global loading overlay */
+#loading-overlay{
+  position:fixed;inset:0;
+  display:none;
+  align-items:center;justify-content:center;
+  background:rgba(7,10,16,0.78);
+  backdrop-filter:blur(2px);
+  z-index:500;
+}
+#loading-overlay.show{display:flex}
+.loading-card{
+  min-width:180px;
+  background:#151c2a;
+  border:1px solid #2b3446;
+  border-radius:14px;
+  padding:14px 16px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+.loading-maze{
+  --s:12px;
+  display:grid;
+  grid-template-columns:repeat(3,var(--s));
+  gap:4px;
+}
+.loading-maze span{
+  width:var(--s);height:var(--s);
+  border-radius:3px;
+  background:#2d3a52;
+  animation:mazePulse 1s infinite ease-in-out;
+}
+.loading-maze span:nth-child(1){animation-delay:0s}
+.loading-maze span:nth-child(2){animation-delay:.08s}
+.loading-maze span:nth-child(3){animation-delay:.16s}
+.loading-maze span:nth-child(4){animation-delay:.24s}
+.loading-maze span:nth-child(5){animation-delay:.32s;background:#8a2be2}
+.loading-maze span:nth-child(6){animation-delay:.4s}
+.loading-maze span:nth-child(7){animation-delay:.48s}
+.loading-maze span:nth-child(8){animation-delay:.56s}
+.loading-maze span:nth-child(9){animation-delay:.64s}
+.loading-text{
+  font-size:11px;
+  letter-spacing:1px;
+  color:#d4def5;
+  text-transform:uppercase;
+}
+@keyframes mazePulse{
+  0%,100%{opacity:.45;transform:scale(1)}
+  50%{opacity:1;transform:scale(1.07)}
 }
 
 /* Motion polish */
@@ -675,6 +811,17 @@ html,body{
   <span id="motive-text"></span>
 </div>
 <canvas id="confetti-canvas"></canvas>
+
+<div id="loading-overlay" aria-live="polite" aria-busy="true">
+  <div class="loading-card">
+    <div class="loading-maze" aria-hidden="true">
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+    </div>
+    <div class="loading-text" id="loading-text">Loading...</div>
+  </div>
+</div>
 
 <!-- ══ EDITOR SCREEN ══ -->
 <div id="editor-screen" class="screen">
@@ -920,6 +1067,8 @@ const editorRowsEl = document.getElementById('editor-rows');
 const editorColsEl = document.getElementById('editor-cols');
 const editorGridApplyBtn = document.getElementById('editor-grid-apply');
 const editorAutoGenBtn = document.getElementById('editor-autogen');
+const loadingOverlayEl = document.getElementById('loading-overlay');
+const loadingTextEl = document.getElementById('loading-text');
 const ectx           = editorCanvas.getContext('2d');
 
 const bctx   = gameCanvas.getContext('2d');
@@ -933,6 +1082,24 @@ let popRaf = 0, popLast = 0;
 let confettiRaf = 0;
 let confettiPrev = 0;
 const confettiStars = [];
+let loadingCount = 0;
+
+function showLoading(msg) {
+  loadingCount++;
+  if (loadingTextEl && msg) loadingTextEl.textContent = msg;
+  if (loadingOverlayEl) loadingOverlayEl.classList.add('show');
+}
+
+function hideLoading() {
+  loadingCount = Math.max(0, loadingCount - 1);
+  if (loadingCount > 0) return;
+  if (loadingOverlayEl) loadingOverlayEl.classList.remove('show');
+}
+
+async function withLoading(msg, fn) {
+  showLoading(msg);
+  try { return await fn(); } finally { hideLoading(); }
+}
 
 /* ── UTILS ── */
 const rng = (a,b) => (Math.random() * (b - a + 1) | 0) + a;
@@ -3543,6 +3710,7 @@ function showMotive(onDone) {
    LEVEL START / RESTART
 ════════════════════════════════════════ */
 function startLevel() {
+  showLoading('Building maze...');
   isSliding = false;
   inputLocked = true;
   levelCompleteTriggered = false;
@@ -3623,6 +3791,7 @@ function startLevel() {
         alert('Could not generate a solvable level. Returning to menu.');
         sessionType = 'classic';
         showScreen('menu-screen');
+        hideLoading();
         return;
       }
     }
@@ -3682,6 +3851,7 @@ function startLevel() {
     paintAt(playerRow, playerCol, false);
     updateHUD();
     inputLocked = false;
+    hideLoading();
   }));
 }
 
@@ -3730,9 +3900,11 @@ function resetEditorGrid(rows, cols) {
 function editorIdx(r, c) { return r * editorCols + c; }
 
 function editorTilePx() {
-  const maxW = Math.min(520, window.innerWidth - 28);
-  const maxH = Math.min(520, window.innerHeight - 260);
-  return Math.max(18, Math.floor(Math.min(maxW / editorCols, maxH / editorRows)));
+  const wrap = document.getElementById('editor-board-wrap');
+  const maxW = Math.max(160, Math.min(560, (wrap && wrap.clientWidth) ? wrap.clientWidth - 8 : window.innerWidth - 24));
+  const viewportH = window.innerHeight || document.documentElement.clientHeight || 640;
+  const maxH = Math.max(160, Math.min(560, viewportH - 330));
+  return Math.max(16, Math.floor(Math.min(maxW / editorCols, maxH / editorRows)));
 }
 
 function renderEditor() {
@@ -4402,89 +4574,93 @@ if (signupBtnEl) signupBtnEl.addEventListener('click', async () => {
   if (!uname) { alert('Enter a username.'); return; }
   if (!walletValid(wallet)) { alert('Enter a valid EVM wallet address (0x + 40 hex chars).'); return; }
   if (!avatar) { alert('Upload an image.'); return; }
-  await initSupabase();
+  await withLoading('Creating account...', async () => {
+    await initSupabase();
 
-  // Stale local records can remain after DB reset; reconcile with Supabase before blocking signup.
-  if (usersDb[uname]) {
-    const remote = await getUserByNameSupabase(uname);
-    if (remote) { alert('Username already exists. Please sign in.'); return; }
-    delete usersDb[uname];
-    persistUsersDb();
-  }
-  if (walletExistsLocal(wallet)) {
-    const remoteWalletExists = await walletExistsSupabase(wallet);
-    if (remoteWalletExists) { alert('Wallet address already exists.'); return; }
-    for (const key of Object.keys(usersDb)) {
-      const rec = usersDb[key];
-      if (rec && normalizeWallet(rec.wallet || '') === wallet) delete usersDb[key];
+    // Stale local records can remain after DB reset; reconcile with Supabase before blocking signup.
+    if (usersDb[uname]) {
+      const remote = await getUserByNameSupabase(uname);
+      if (remote) { alert('Username already exists. Please sign in.'); return; }
+      delete usersDb[uname];
+      persistUsersDb();
     }
-    persistUsersDb();
-  }
+    if (walletExistsLocal(wallet)) {
+      const remoteWalletExists = await walletExistsSupabase(wallet);
+      if (remoteWalletExists) { alert('Wallet address already exists.'); return; }
+      for (const key of Object.keys(usersDb)) {
+        const rec = usersDb[key];
+        if (rec && normalizeWallet(rec.wallet || '') === wallet) delete usersDb[key];
+      }
+      persistUsersDb();
+    }
 
-  if (await usernameExistsSupabase(uname)) { alert('Username already exists on database. Please choose another.'); return; }
-  if (await walletExistsSupabase(wallet)) { alert('Wallet address already exists on database.'); return; }
-  usersDb[uname] = { name: nameRaw.slice(0, 24), wallet, avatar, onboarded: false };
-  persistUsersDb();
-  await upsertUserSupabase(uname, wallet, usersDb[uname].name, avatar, false);
-  setCurrentUser(uname);
-  playerProfile = { name: usersDb[uname].name, avatar: usersDb[uname].avatar };
-  persistPlayerProfile();
-  loadUserState();
-  refreshMenuAvatar();
-  refreshContinueButton();
-  refreshDailyButton();
-  refreshEditorAccess();
-  refreshProfileEditingState();
-  renderAchievements();
-  setSlider(Math.max(0, DIFF_MODES.indexOf(difficulty)), false);
-  onboardingNameEl.value = usersDb[uname].name;
-  onboardingNameEl.readOnly = true;
-  onboardingAvatarPreviewEl.src = avatar;
-  onboardingAvatarPreviewEl.style.display = 'block';
-  showScreen('onboarding-screen');
+    if (await usernameExistsSupabase(uname)) { alert('Username already exists on database. Please choose another.'); return; }
+    if (await walletExistsSupabase(wallet)) { alert('Wallet address already exists on database.'); return; }
+    usersDb[uname] = { name: nameRaw.slice(0, 24), wallet, avatar, onboarded: false };
+    persistUsersDb();
+    await upsertUserSupabase(uname, wallet, usersDb[uname].name, avatar, false);
+    setCurrentUser(uname);
+    playerProfile = { name: usersDb[uname].name, avatar: usersDb[uname].avatar };
+    persistPlayerProfile();
+    loadUserState();
+    refreshMenuAvatar();
+    refreshContinueButton();
+    refreshDailyButton();
+    refreshEditorAccess();
+    refreshProfileEditingState();
+    renderAchievements();
+    setSlider(Math.max(0, DIFF_MODES.indexOf(difficulty)), false);
+    onboardingNameEl.value = usersDb[uname].name;
+    onboardingNameEl.readOnly = true;
+    onboardingAvatarPreviewEl.src = avatar;
+    onboardingAvatarPreviewEl.style.display = 'block';
+    showScreen('onboarding-screen');
+  });
 });
 
 if (signinBtnEl) signinBtnEl.addEventListener('click', async () => {
   const uname = normalizeUserName(signinNameEl.value);
   const wallet = normalizeWallet(signinWalletEl.value);
-  await initSupabase();
-  let rec = usersDb[uname];
-  if (!rec || normalizeWallet(rec.wallet) !== wallet) {
-    const remote = await getUserByCredentialsSupabase(uname, wallet);
-    if (!remote) { alert('Invalid username or EVM wallet address.'); return; }
-    rec = {
-      name: (remote.display_name || uname).slice(0, 24),
-      wallet: normalizeWallet(remote.wallet_address || wallet),
-      avatar: remote.avatar_url || '',
-      onboarded: !!remote.onboarded
-    };
-    usersDb[uname] = rec;
-    persistUsersDb();
-  }
-  setCurrentUser(uname);
-  playerProfile = { name: rec.name, avatar: rec.avatar };
-  loadUserState();
-  refreshMenuAvatar();
-  refreshContinueButton();
-  refreshDailyButton();
-  refreshEditorAccess();
-  refreshProfileEditingState();
-  renderAchievements();
-  setSlider(Math.max(0, DIFF_MODES.indexOf(difficulty)), false);
-  await upsertUserSupabase(uname, rec.wallet, rec.name, rec.avatar, !!rec.onboarded);
-  await pullUserDataFromSupabase();
-  refreshContinueButton();
-  if (!rec.onboarded) {
-    onboardingNameEl.value = rec.name;
-    onboardingNameEl.readOnly = true;
-    if (rec.avatar) {
-      onboardingAvatarPreviewEl.src = rec.avatar;
-      onboardingAvatarPreviewEl.style.display = 'block';
+  await withLoading('Signing in...', async () => {
+    await initSupabase();
+    let rec = usersDb[uname];
+    if (!rec || normalizeWallet(rec.wallet) !== wallet) {
+      const remote = await getUserByCredentialsSupabase(uname, wallet);
+      if (!remote) { alert('Invalid username or EVM wallet address.'); return; }
+      rec = {
+        name: (remote.display_name || uname).slice(0, 24),
+        wallet: normalizeWallet(remote.wallet_address || wallet),
+        avatar: remote.avatar_url || '',
+        onboarded: !!remote.onboarded
+      };
+      usersDb[uname] = rec;
+      persistUsersDb();
     }
-    showScreen('onboarding-screen');
-  } else {
-    showScreen('menu-screen');
-  }
+    setCurrentUser(uname);
+    playerProfile = { name: rec.name, avatar: rec.avatar };
+    loadUserState();
+    refreshMenuAvatar();
+    refreshContinueButton();
+    refreshDailyButton();
+    refreshEditorAccess();
+    refreshProfileEditingState();
+    renderAchievements();
+    setSlider(Math.max(0, DIFF_MODES.indexOf(difficulty)), false);
+    await upsertUserSupabase(uname, rec.wallet, rec.name, rec.avatar, !!rec.onboarded);
+    await pullUserDataFromSupabase();
+    refreshContinueButton();
+    if (!rec.onboarded) {
+      onboardingNameEl.value = rec.name;
+      onboardingNameEl.readOnly = true;
+      if (rec.avatar) {
+        onboardingAvatarPreviewEl.src = rec.avatar;
+        onboardingAvatarPreviewEl.style.display = 'block';
+      }
+      showScreen('onboarding-screen');
+    } else {
+      showScreen('menu-screen');
+    }
+  });
 });
 
 if (savePlayerBtnEl) savePlayerBtnEl.addEventListener('click', async () => {
@@ -4505,14 +4681,16 @@ if (savePlayerBtnEl) savePlayerBtnEl.addEventListener('click', async () => {
     persistUsersDb();
   }
   persistPlayerProfile();
-  await initSupabase();
-  if (usersDb[currentUserName]) {
-    await upsertUserSupabase(currentUserName, usersDb[currentUserName].wallet || '', name, avatar, true);
-  }
-  refreshMenuAvatar();
-  refreshEditorAccess();
-  refreshProfileEditingState();
-  showScreen('menu-screen');
+  await withLoading('Saving profile...', async () => {
+    await initSupabase();
+    if (usersDb[currentUserName]) {
+      await upsertUserSupabase(currentUserName, usersDb[currentUserName].wallet || '', name, avatar, true);
+    }
+    refreshMenuAvatar();
+    refreshEditorAccess();
+    refreshProfileEditingState();
+    showScreen('menu-screen');
+  });
 });
 
 /* ════════════════════════════════════════
