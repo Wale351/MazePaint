@@ -708,8 +708,12 @@ html,body{
   <div class="card">
     <h2 style="font-family:'Orbitron',monospace;letter-spacing:2px;font-size:16px;margin-bottom:12px;">SIGN IN</h2>
     <div class="field">
-      <label for="signin-name-input">Username</label>
-      <input id="signin-name-input" maxlength="24" placeholder="Enter username" />
+      <label for="signin-name-input">X Username</label>
+      <input id="signin-name-input" maxlength="24" placeholder="X Username" />
+    </div>
+    <div class="field">
+      <label for="signin-pin-input">PIN (4 digits)</label>
+      <input id="signin-pin-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" />
     </div>
     <button class="btn" id="signin-btn" style="margin-top:14px;width:100%;">Sign In</button>
     <button class="btn btn-ghost" id="go-signup-btn" style="margin-top:10px;width:100%;">Create Account</button>
@@ -720,8 +724,12 @@ html,body{
   <div class="card">
     <h2 style="font-family:'Orbitron',monospace;letter-spacing:2px;font-size:16px;margin-bottom:12px;">SIGN UP</h2>
     <div class="field">
-      <label for="signup-name-input">Username</label>
-      <input id="signup-name-input" maxlength="24" placeholder="Choose username" />
+      <label for="signup-name-input">X Username</label>
+      <input id="signup-name-input" maxlength="24" placeholder="X Username" />
+    </div>
+    <div class="field">
+      <label for="signup-pin-input">PIN (4 digits)</label>
+      <input id="signup-pin-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" />
     </div>
     <button class="btn" id="signup-btn" style="margin-top:14px;width:100%;">Create Account</button>
     <button class="btn btn-ghost" id="go-signin-btn" style="margin-top:10px;width:100%;">Back to Sign In</button>
@@ -779,8 +787,12 @@ html,body{
   <div class="card">
     <h2 id="profile-heading" style="font-family:'Orbitron',monospace;letter-spacing:2px;font-size:16px;margin-bottom:12px;">PLAYER SETUP</h2>
     <div class="field">
-      <label for="player-name-input">Name</label>
-      <input id="player-name-input" maxlength="24" placeholder="Enter player name" />
+      <label for="player-name-input">X Username</label>
+      <input id="player-name-input" maxlength="24" placeholder="X Username" />
+    </div>
+    <div class="field">
+      <label for="player-pin-input">PIN (4 digits)</label>
+      <input id="player-pin-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" />
     </div>
     <button class="btn" id="save-player-btn" style="margin-top:14px;width:100%;">Save Profile</button>
     <button class="btn btn-ghost" id="profile-back-btn" style="margin-top:10px;width:100%;">Back</button>
@@ -1033,12 +1045,15 @@ const menuLeaderboardBtnEl = document.getElementById('menu-leaderboard-btn');
 const menuAchievementsBtnEl = document.getElementById('menu-achievements-btn');
 const menuSignoutBtnEl = document.getElementById('menu-signout-btn');
 const signinNameEl = document.getElementById('signin-name-input');
+const signinPinEl = document.getElementById('signin-pin-input');
 const signinBtnEl = document.getElementById('signin-btn');
 const goSignupBtnEl = document.getElementById('go-signup-btn');
 const signupNameEl = document.getElementById('signup-name-input');
+const signupPinEl = document.getElementById('signup-pin-input');
 const signupBtnEl = document.getElementById('signup-btn');
 const goSigninBtnEl = document.getElementById('go-signin-btn');
 const onboardingNameEl = document.getElementById('player-name-input');
+const onboardingPinEl = document.getElementById('player-pin-input');
 const onboardingAvatarEl = document.getElementById('player-avatar-input');
 const onboardingAvatarPreviewEl = document.getElementById('player-avatar-preview');
 const savePlayerBtnEl = document.getElementById('save-player-btn');
@@ -1237,6 +1252,33 @@ function normalizeUserName(name) {
   return String(name || '').trim().toLowerCase();
 }
 
+function normalizePin(pin) {
+  return String(pin || '').replace(/\D+/g, '').slice(0, 4);
+}
+
+function pinValid(pin) {
+  return /^\d{4}$/.test(normalizePin(pin));
+}
+
+async function hashPin(pin) {
+  const p = normalizePin(pin);
+  if (!p) return '';
+  try {
+    const enc = new TextEncoder().encode(`maze-pin-v1:${p}`);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    const arr = new Uint8Array(buf);
+    return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch (_) {
+    let h = 2166136261 >>> 0;
+    const s = `maze-pin-v1:${p}`;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return `f${h.toString(16)}`;
+  }
+}
+
 function scopedKey(base) {
   return currentUserName ? `${base}__${currentUserName}` : base;
 }
@@ -1264,7 +1306,8 @@ function refreshEditorAccess() {
 function refreshProfileEditingState() {
   const isUser = !!(currentUserName && usersDb[currentUserName]);
   const onboarded = !!(isUser && usersDb[currentUserName].onboarded);
-  if (onboardingNameEl) onboardingNameEl.readOnly = true; // username immutable once account exists
+  if (onboardingNameEl) onboardingNameEl.readOnly = onboarded;
+  if (onboardingPinEl) onboardingPinEl.readOnly = onboarded;
   if (onboardingAvatarEl) onboardingAvatarEl.disabled = true;
   if (savePlayerBtnEl) savePlayerBtnEl.style.display = onboarded ? 'none' : 'inline-flex';
 }
@@ -1545,7 +1588,7 @@ async function getUserByNameSupabase(userName) {
   try {
     const { data, error } = await supabaseClient
       .from('maze_users')
-      .select('user_name,display_name,avatar_url,onboarded')
+      .select('user_name,display_name,avatar_url,onboarded,wallet_address')
       .eq('user_name', userName)
       .limit(1);
     if (error || !Array.isArray(data) || !data.length) return null;
@@ -1555,17 +1598,17 @@ async function getUserByNameSupabase(userName) {
   }
 }
 
-async function upsertUserSupabase(userName, walletAddress, displayName, avatarUrl, onboarded) {
+async function upsertUserSupabase(userName, pinHash, displayName, avatarUrl, onboarded) {
   if (!supabaseEnabled || !supabaseClient) return;
   try {
     await supabaseClient
       .from('maze_users')
       .upsert({
         user_name: userName,
-        wallet_address: `user:${userName}`,
+        wallet_address: `pin:${pinHash || ''}`,
         display_name: displayName,
         avatar_url: '',
-        onboarded: true,
+        onboarded: !!onboarded,
         updated_at: new Date().toISOString()
       }, { onConflict: 'user_name' });
   } catch (_) {}
@@ -2873,9 +2916,12 @@ if (achievementsTopBackBtnEl) achievementsTopBackBtnEl.addEventListener('click',
   showScreen('menu-screen');
 });
 if (menuProfileBtnEl) menuProfileBtnEl.addEventListener('click', () => {
-  if (playerProfile) {
-    onboardingNameEl.value = playerProfile.name || '';
-    onboardingNameEl.readOnly = true;
+  const onboarded = !!(currentUserName && usersDb[currentUserName] && usersDb[currentUserName].onboarded);
+  onboardingNameEl.value = (playerProfile && playerProfile.name) ? playerProfile.name : (currentUserName || '');
+  onboardingNameEl.readOnly = onboarded;
+  if (onboardingPinEl) {
+    onboardingPinEl.value = '';
+    onboardingPinEl.readOnly = onboarded;
   }
   showScreen('onboarding-screen');
 });
@@ -4527,8 +4573,10 @@ if (goSigninBtnEl) goSigninBtnEl.addEventListener('click', () => showScreen('sig
 
 if (signupBtnEl) signupBtnEl.addEventListener('click', async () => {
   const nameRaw = (signupNameEl.value || '').trim();
+  const pin = normalizePin(signupPinEl && signupPinEl.value);
   const uname = normalizeUserName(nameRaw);
   if (!uname) { alert('Enter a username.'); return; }
+  if (!pinValid(pin)) { alert('Enter a valid 4-digit PIN.'); return; }
   await withLoading('Creating account...', async () => {
     await initSupabase();
 
@@ -4541,9 +4589,10 @@ if (signupBtnEl) signupBtnEl.addEventListener('click', async () => {
     }
 
     if (await usernameExistsSupabase(uname)) { alert('Username already exists on database. Please choose another.'); return; }
-    usersDb[uname] = { name: nameRaw.slice(0, 24), wallet: '', avatar: '', onboarded: true };
+    const pinHash = await hashPin(pin);
+    usersDb[uname] = { name: nameRaw.slice(0, 24), pinHash, wallet: '', avatar: '', onboarded: false };
     persistUsersDb();
-    await upsertUserSupabase(uname, '', usersDb[uname].name, '', true);
+    await upsertUserSupabase(uname, pinHash, usersDb[uname].name, '', false);
     setCurrentUser(uname);
     playerProfile = { name: usersDb[uname].name, avatar: '' };
     persistPlayerProfile();
@@ -4555,24 +4604,39 @@ if (signupBtnEl) signupBtnEl.addEventListener('click', async () => {
     refreshProfileEditingState();
     renderAchievements();
     setSlider(Math.max(0, DIFF_MODES.indexOf(difficulty)), false);
-    showScreen('menu-screen');
+    onboardingNameEl.value = usersDb[uname].name;
+    onboardingNameEl.readOnly = false;
+    if (onboardingPinEl) {
+      onboardingPinEl.value = pin;
+      onboardingPinEl.readOnly = false;
+    }
+    showScreen('onboarding-screen');
   });
 });
 
 if (signinBtnEl) signinBtnEl.addEventListener('click', async () => {
   const uname = normalizeUserName(signinNameEl.value);
+  const pin = normalizePin(signinPinEl && signinPinEl.value);
   if (!uname) { alert('Enter your username.'); return; }
+  if (!pinValid(pin)) { alert('Enter your 4-digit PIN.'); return; }
   await withLoading('Signing in...', async () => {
     await initSupabase();
+    const pinHash = await hashPin(pin);
     let rec = usersDb[uname];
+    if (rec && (!rec.pinHash || rec.pinHash !== pinHash)) {
+      rec = null;
+    }
     if (!rec) {
       const remote = await getUserByNameSupabase(uname);
       if (!remote) { alert('Username not found.'); return; }
+      const remotePinHash = String(remote.wallet_address || '').startsWith('pin:') ? String(remote.wallet_address).slice(4) : '';
+      if (!remotePinHash || remotePinHash !== pinHash) { alert('Invalid username or PIN.'); return; }
       rec = {
         name: (remote.display_name || uname).slice(0, 24),
+        pinHash,
         wallet: '',
         avatar: remote.avatar_url || '',
-        onboarded: true
+        onboarded: !!remote.onboarded
       };
       usersDb[uname] = rec;
       persistUsersDb();
@@ -4587,24 +4651,40 @@ if (signinBtnEl) signinBtnEl.addEventListener('click', async () => {
     refreshProfileEditingState();
     renderAchievements();
     setSlider(Math.max(0, DIFF_MODES.indexOf(difficulty)), false);
-    await upsertUserSupabase(uname, '', rec.name, '', true);
+    await upsertUserSupabase(uname, rec.pinHash || pinHash, rec.name, '', !!rec.onboarded);
     await pullUserDataFromSupabase();
     refreshContinueButton();
-    showScreen('menu-screen');
+    if (!rec.onboarded) {
+      onboardingNameEl.value = rec.name;
+      onboardingNameEl.readOnly = false;
+      if (onboardingPinEl) {
+        onboardingPinEl.value = '';
+        onboardingPinEl.readOnly = false;
+      }
+      showScreen('onboarding-screen');
+    } else {
+      showScreen('menu-screen');
+    }
   });
 });
 
 if (savePlayerBtnEl) savePlayerBtnEl.addEventListener('click', async () => {
   const name = (onboardingNameEl.value || '').trim().slice(0, 24);
+  const normalized = normalizeUserName(name);
+  const pin = normalizePin(onboardingPinEl && onboardingPinEl.value);
   if (!currentUserName) { alert('Please sign in first.'); return; }
   if (usersDb[currentUserName] && usersDb[currentUserName].onboarded) {
     alert('Profile is locked after onboarding.');
     return;
   }
   if (!name) { alert('Please enter your name.'); return; }
+  if (normalized !== currentUserName) { alert('X Username cannot be changed after account creation.'); return; }
+  if (!pinValid(pin)) { alert('Please enter a valid 4-digit PIN.'); return; }
+  const pinHash = await hashPin(pin);
   playerProfile = { name, avatar: '' };
   if (usersDb[currentUserName]) {
     usersDb[currentUserName].name = name;
+    usersDb[currentUserName].pinHash = pinHash;
     usersDb[currentUserName].avatar = '';
     usersDb[currentUserName].onboarded = true;
     persistUsersDb();
@@ -4613,7 +4693,7 @@ if (savePlayerBtnEl) savePlayerBtnEl.addEventListener('click', async () => {
   await withLoading('Saving profile...', async () => {
     await initSupabase();
     if (usersDb[currentUserName]) {
-      await upsertUserSupabase(currentUserName, '', name, '', true);
+      await upsertUserSupabase(currentUserName, pinHash, name, '', true);
     }
     refreshMenuAvatar();
     refreshEditorAccess();
@@ -4643,10 +4723,15 @@ if (sessionUser && usersDb[sessionUser]) {
   renderAchievements();
   if (playerProfile) {
     onboardingNameEl.value = playerProfile.name;
-    onboardingNameEl.readOnly = true;
+    onboardingNameEl.readOnly = !!usersDb[sessionUser].onboarded;
+    if (onboardingPinEl) {
+      onboardingPinEl.value = '';
+      onboardingPinEl.readOnly = !!usersDb[sessionUser].onboarded;
+    }
   }
   setSlider(Math.max(0, DIFF_MODES.indexOf(difficulty)), false);
-  showScreen('menu-screen');
+  if (usersDb[sessionUser].onboarded) showScreen('menu-screen');
+  else showScreen('onboarding-screen');
 } else {
   updateScoreChip();
   refreshContinueButton();
