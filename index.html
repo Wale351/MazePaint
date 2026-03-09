@@ -711,10 +711,6 @@ html,body{
       <label for="signin-name-input">Username</label>
       <input id="signin-name-input" maxlength="24" placeholder="Enter username" />
     </div>
-    <div class="field">
-      <label for="signin-wallet-input">EVM Wallet Address</label>
-      <input id="signin-wallet-input" placeholder="0x1234...abcd" />
-    </div>
     <button class="btn" id="signin-btn" style="margin-top:14px;width:100%;">Sign In</button>
     <button class="btn btn-ghost" id="go-signup-btn" style="margin-top:10px;width:100%;">Create Account</button>
   </div>
@@ -727,15 +723,6 @@ html,body{
       <label for="signup-name-input">Username</label>
       <input id="signup-name-input" maxlength="24" placeholder="Choose username" />
     </div>
-    <div class="field">
-      <label for="signup-wallet-input">EVM Wallet Address</label>
-      <input id="signup-wallet-input" placeholder="0x1234...abcd" />
-    </div>
-    <div class="field">
-      <label for="signup-avatar-input">Avatar Image</label>
-      <input id="signup-avatar-input" type="file" accept="image/*" />
-    </div>
-    <img id="signup-avatar-preview" class="avatar-preview" alt="Avatar preview" />
     <button class="btn" id="signup-btn" style="margin-top:14px;width:100%;">Create Account</button>
     <button class="btn btn-ghost" id="go-signin-btn" style="margin-top:10px;width:100%;">Back to Sign In</button>
   </div>
@@ -795,11 +782,6 @@ html,body{
       <label for="player-name-input">Name</label>
       <input id="player-name-input" maxlength="24" placeholder="Enter player name" />
     </div>
-    <div class="field">
-      <label for="player-avatar-input">Avatar Image</label>
-      <input id="player-avatar-input" type="file" accept="image/*" />
-    </div>
-    <img id="player-avatar-preview" class="avatar-preview" alt="Avatar preview" />
     <button class="btn" id="save-player-btn" style="margin-top:14px;width:100%;">Save Profile</button>
     <button class="btn btn-ghost" id="profile-back-btn" style="margin-top:10px;width:100%;">Back</button>
   </div>
@@ -996,7 +978,7 @@ const SUPABASE_ANON_KEY = 'maze_paint_supabase_anon_key';
 const USERS_KEY = 'maze_paint_users_v1';
 const SESSION_USER_KEY = 'maze_paint_session_user_v1';
 const PROFILE_RESET_DONE_KEY = 'maze_paint_profile_reset_done_v2';
-const ADMIN_WALLETS = new Set(['0xea7ff76fd020ba4e8e6de10f9fdee52b8737a9b7']);
+const ADMIN_USERNAMES = new Set(['wale']);
 const LEADERBOARD_MAX = 50;
 let savedBuildLevels = {};
 let easyInfinityHashes = [];
@@ -1051,13 +1033,9 @@ const menuLeaderboardBtnEl = document.getElementById('menu-leaderboard-btn');
 const menuAchievementsBtnEl = document.getElementById('menu-achievements-btn');
 const menuSignoutBtnEl = document.getElementById('menu-signout-btn');
 const signinNameEl = document.getElementById('signin-name-input');
-const signinWalletEl = document.getElementById('signin-wallet-input');
 const signinBtnEl = document.getElementById('signin-btn');
 const goSignupBtnEl = document.getElementById('go-signup-btn');
 const signupNameEl = document.getElementById('signup-name-input');
-const signupWalletEl = document.getElementById('signup-wallet-input');
-const signupAvatarEl = document.getElementById('signup-avatar-input');
-const signupAvatarPreviewEl = document.getElementById('signup-avatar-preview');
 const signupBtnEl = document.getElementById('signup-btn');
 const goSigninBtnEl = document.getElementById('go-signin-btn');
 const onboardingNameEl = document.getElementById('player-name-input');
@@ -1270,12 +1248,11 @@ function normalizeWallet(addr) {
 }
 
 function currentUserWallet() {
-  if (!currentUserName || !usersDb[currentUserName]) return '';
-  return normalizeWallet(usersDb[currentUserName].wallet || '');
+  return '';
 }
 
 function isCurrentUserAdmin() {
-  return ADMIN_WALLETS.has(currentUserWallet());
+  return ADMIN_USERNAMES.has(currentUserName);
 }
 
 function refreshEditorAccess() {
@@ -1288,13 +1265,13 @@ function refreshProfileEditingState() {
   const isUser = !!(currentUserName && usersDb[currentUserName]);
   const onboarded = !!(isUser && usersDb[currentUserName].onboarded);
   if (onboardingNameEl) onboardingNameEl.readOnly = true; // username immutable once account exists
-  if (onboardingAvatarEl) onboardingAvatarEl.disabled = onboarded;
+  if (onboardingAvatarEl) onboardingAvatarEl.disabled = true;
   if (savePlayerBtnEl) savePlayerBtnEl.style.display = onboarded ? 'none' : 'inline-flex';
 }
 
 function walletValid(addr) {
   const v = String(addr || '').trim();
-  return /^0x[a-fA-F0-9]{40}$/.test(v); // Strict EVM address only
+  return !!v;
 }
 
 function loadUsersDb() {
@@ -1383,10 +1360,10 @@ function loadPlayerProfile() {
     const raw = localStorage.getItem(scopedKey(PLAYER_PROFILE_KEY));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed.name !== 'string' || typeof parsed.avatar !== 'string') return null;
+    if (!parsed || typeof parsed.name !== 'string') return null;
     const name = parsed.name.trim().slice(0, 24);
-    if (!name || !parsed.avatar) return null;
-    return { name, avatar: parsed.avatar };
+    if (!name) return null;
+    return { name, avatar: typeof parsed.avatar === 'string' ? parsed.avatar : '' };
   } catch (_) {
     return null;
   }
@@ -1568,24 +1545,8 @@ async function getUserByNameSupabase(userName) {
   try {
     const { data, error } = await supabaseClient
       .from('maze_users')
-      .select('user_name,wallet_address,display_name,avatar_url,onboarded')
+      .select('user_name,display_name,avatar_url,onboarded')
       .eq('user_name', userName)
-      .limit(1);
-    if (error || !Array.isArray(data) || !data.length) return null;
-    return data[0] || null;
-  } catch (_) {
-    return null;
-  }
-}
-
-async function getUserByCredentialsSupabase(userName, walletAddress) {
-  if (!supabaseEnabled || !supabaseClient) return null;
-  try {
-    const { data, error } = await supabaseClient
-      .from('maze_users')
-      .select('user_name,wallet_address,display_name,avatar_url,onboarded')
-      .eq('user_name', userName)
-      .eq('wallet_address', walletAddress)
       .limit(1);
     if (error || !Array.isArray(data) || !data.length) return null;
     return data[0] || null;
@@ -1601,10 +1562,10 @@ async function upsertUserSupabase(userName, walletAddress, displayName, avatarUr
       .from('maze_users')
       .upsert({
         user_name: userName,
-        wallet_address: walletAddress,
+        wallet_address: `user:${userName}`,
         display_name: displayName,
-        avatar_url: avatarUrl || '',
-        onboarded: !!onboarded,
+        avatar_url: '',
+        onboarded: true,
         updated_at: new Date().toISOString()
       }, { onConflict: 'user_name' });
   } catch (_) {}
@@ -1922,7 +1883,7 @@ function refreshMenuAvatar() {
   if (playerProfile && playerProfile.avatar) {
     menuAvatarImgEl.src = playerProfile.avatar;
   } else {
-    menuAvatarImgEl.src = '';
+    menuAvatarImgEl.src = avatarFallback(playerProfile && playerProfile.name ? playerProfile.name : 'P');
   }
 }
 
@@ -2068,6 +2029,12 @@ function escapeHtml(s) {
     .replaceAll("'", '&#39;');
 }
 
+function avatarFallback(name) {
+  const letter = String(name || 'P').trim().charAt(0).toUpperCase() || 'P';
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><rect width='64' height='64' rx='10' fill='#24324a'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='30' fill='#ffffff'>${letter}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
 function pushLeaderboardEntry() {
   if (!playerProfile || !totalScore || sessionType === 'daily') return;
   const modeLabel = sessionType === 'timer' ? 'Timer' : difficulty;
@@ -2104,10 +2071,11 @@ function renderLeaderboard() {
       const d = new Date(e.at);
       const dateLabel = Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString();
       const safeName = escapeHtml(e.name);
+      const avatarSrc = (e.avatar && String(e.avatar).trim()) ? e.avatar : avatarFallback(e.name);
       return `
         <div class="lb-item">
           <div class="lb-rank">#${idx + 1}</div>
-          <img class="lb-avatar" src="${e.avatar}" alt="${safeName}">
+          <img class="lb-avatar" src="${avatarSrc}" alt="${safeName}">
           <div class="lb-meta">
             <div class="lb-name">${safeName}</div>
             <div class="lb-sub">L${e.level}${dateLabel ? ` • ${dateLabel}` : ''}</div>
@@ -2908,10 +2876,6 @@ if (menuProfileBtnEl) menuProfileBtnEl.addEventListener('click', () => {
   if (playerProfile) {
     onboardingNameEl.value = playerProfile.name || '';
     onboardingNameEl.readOnly = true;
-    if (playerProfile.avatar) {
-      onboardingAvatarPreviewEl.src = playerProfile.avatar;
-      onboardingAvatarPreviewEl.style.display = 'block';
-    }
   }
   showScreen('onboarding-screen');
 });
@@ -4558,41 +4522,13 @@ window.MazePaintAdvancedIntegration = {
   };
 })();
 
-if (onboardingAvatarEl) onboardingAvatarEl.addEventListener('change', () => {
-  const f = onboardingAvatarEl.files && onboardingAvatarEl.files[0];
-  if (!f) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    if (typeof reader.result !== 'string') return;
-    onboardingAvatarPreviewEl.src = reader.result;
-    onboardingAvatarPreviewEl.style.display = 'block';
-  };
-  reader.readAsDataURL(f);
-});
-
-if (signupAvatarEl) signupAvatarEl.addEventListener('change', () => {
-  const f = signupAvatarEl.files && signupAvatarEl.files[0];
-  if (!f) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    if (typeof reader.result !== 'string') return;
-    signupAvatarPreviewEl.src = reader.result;
-    signupAvatarPreviewEl.style.display = 'block';
-  };
-  reader.readAsDataURL(f);
-});
-
 if (goSignupBtnEl) goSignupBtnEl.addEventListener('click', () => showScreen('signup-screen'));
 if (goSigninBtnEl) goSigninBtnEl.addEventListener('click', () => showScreen('signin-screen'));
 
 if (signupBtnEl) signupBtnEl.addEventListener('click', async () => {
   const nameRaw = (signupNameEl.value || '').trim();
-  const wallet = normalizeWallet(signupWalletEl.value);
-  const avatar = signupAvatarPreviewEl.src || '';
   const uname = normalizeUserName(nameRaw);
   if (!uname) { alert('Enter a username.'); return; }
-  if (!walletValid(wallet)) { alert('Enter a valid EVM wallet address (0x + 40 hex chars).'); return; }
-  if (!avatar) { alert('Upload an image.'); return; }
   await withLoading('Creating account...', async () => {
     await initSupabase();
 
@@ -4603,23 +4539,13 @@ if (signupBtnEl) signupBtnEl.addEventListener('click', async () => {
       delete usersDb[uname];
       persistUsersDb();
     }
-    if (walletExistsLocal(wallet)) {
-      const remoteWalletExists = await walletExistsSupabase(wallet);
-      if (remoteWalletExists) { alert('Wallet address already exists.'); return; }
-      for (const key of Object.keys(usersDb)) {
-        const rec = usersDb[key];
-        if (rec && normalizeWallet(rec.wallet || '') === wallet) delete usersDb[key];
-      }
-      persistUsersDb();
-    }
 
     if (await usernameExistsSupabase(uname)) { alert('Username already exists on database. Please choose another.'); return; }
-    if (await walletExistsSupabase(wallet)) { alert('Wallet address already exists on database.'); return; }
-    usersDb[uname] = { name: nameRaw.slice(0, 24), wallet, avatar, onboarded: false };
+    usersDb[uname] = { name: nameRaw.slice(0, 24), wallet: '', avatar: '', onboarded: true };
     persistUsersDb();
-    await upsertUserSupabase(uname, wallet, usersDb[uname].name, avatar, false);
+    await upsertUserSupabase(uname, '', usersDb[uname].name, '', true);
     setCurrentUser(uname);
-    playerProfile = { name: usersDb[uname].name, avatar: usersDb[uname].avatar };
+    playerProfile = { name: usersDb[uname].name, avatar: '' };
     persistPlayerProfile();
     loadUserState();
     refreshMenuAvatar();
@@ -4629,28 +4555,24 @@ if (signupBtnEl) signupBtnEl.addEventListener('click', async () => {
     refreshProfileEditingState();
     renderAchievements();
     setSlider(Math.max(0, DIFF_MODES.indexOf(difficulty)), false);
-    onboardingNameEl.value = usersDb[uname].name;
-    onboardingNameEl.readOnly = true;
-    onboardingAvatarPreviewEl.src = avatar;
-    onboardingAvatarPreviewEl.style.display = 'block';
-    showScreen('onboarding-screen');
+    showScreen('menu-screen');
   });
 });
 
 if (signinBtnEl) signinBtnEl.addEventListener('click', async () => {
   const uname = normalizeUserName(signinNameEl.value);
-  const wallet = normalizeWallet(signinWalletEl.value);
+  if (!uname) { alert('Enter your username.'); return; }
   await withLoading('Signing in...', async () => {
     await initSupabase();
     let rec = usersDb[uname];
-    if (!rec || normalizeWallet(rec.wallet) !== wallet) {
-      const remote = await getUserByCredentialsSupabase(uname, wallet);
-      if (!remote) { alert('Invalid username or EVM wallet address.'); return; }
+    if (!rec) {
+      const remote = await getUserByNameSupabase(uname);
+      if (!remote) { alert('Username not found.'); return; }
       rec = {
         name: (remote.display_name || uname).slice(0, 24),
-        wallet: normalizeWallet(remote.wallet_address || wallet),
+        wallet: '',
         avatar: remote.avatar_url || '',
-        onboarded: !!remote.onboarded
+        onboarded: true
       };
       usersDb[uname] = rec;
       persistUsersDb();
@@ -4665,37 +4587,25 @@ if (signinBtnEl) signinBtnEl.addEventListener('click', async () => {
     refreshProfileEditingState();
     renderAchievements();
     setSlider(Math.max(0, DIFF_MODES.indexOf(difficulty)), false);
-    await upsertUserSupabase(uname, rec.wallet, rec.name, rec.avatar, !!rec.onboarded);
+    await upsertUserSupabase(uname, '', rec.name, '', true);
     await pullUserDataFromSupabase();
     refreshContinueButton();
-    if (!rec.onboarded) {
-      onboardingNameEl.value = rec.name;
-      onboardingNameEl.readOnly = true;
-      if (rec.avatar) {
-        onboardingAvatarPreviewEl.src = rec.avatar;
-        onboardingAvatarPreviewEl.style.display = 'block';
-      }
-      showScreen('onboarding-screen');
-    } else {
-      showScreen('menu-screen');
-    }
+    showScreen('menu-screen');
   });
 });
 
 if (savePlayerBtnEl) savePlayerBtnEl.addEventListener('click', async () => {
   const name = (onboardingNameEl.value || '').trim().slice(0, 24);
-  const avatar = onboardingAvatarPreviewEl.src || '';
   if (!currentUserName) { alert('Please sign in first.'); return; }
   if (usersDb[currentUserName] && usersDb[currentUserName].onboarded) {
     alert('Profile is locked after onboarding.');
     return;
   }
   if (!name) { alert('Please enter your name.'); return; }
-  if (!avatar) { alert('Please upload an avatar image.'); return; }
-  playerProfile = { name, avatar };
+  playerProfile = { name, avatar: '' };
   if (usersDb[currentUserName]) {
     usersDb[currentUserName].name = name;
-    usersDb[currentUserName].avatar = avatar;
+    usersDb[currentUserName].avatar = '';
     usersDb[currentUserName].onboarded = true;
     persistUsersDb();
   }
@@ -4703,7 +4613,7 @@ if (savePlayerBtnEl) savePlayerBtnEl.addEventListener('click', async () => {
   await withLoading('Saving profile...', async () => {
     await initSupabase();
     if (usersDb[currentUserName]) {
-      await upsertUserSupabase(currentUserName, usersDb[currentUserName].wallet || '', name, avatar, true);
+      await upsertUserSupabase(currentUserName, '', name, '', true);
     }
     refreshMenuAvatar();
     refreshEditorAccess();
@@ -4734,14 +4644,9 @@ if (sessionUser && usersDb[sessionUser]) {
   if (playerProfile) {
     onboardingNameEl.value = playerProfile.name;
     onboardingNameEl.readOnly = true;
-    if (playerProfile.avatar) {
-      onboardingAvatarPreviewEl.src = playerProfile.avatar;
-      onboardingAvatarPreviewEl.style.display = 'block';
-    }
   }
   setSlider(Math.max(0, DIFF_MODES.indexOf(difficulty)), false);
-  if (usersDb[sessionUser].onboarded) showScreen('menu-screen');
-  else showScreen('onboarding-screen');
+  showScreen('menu-screen');
 } else {
   updateScoreChip();
   refreshContinueButton();
