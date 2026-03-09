@@ -2861,7 +2861,6 @@ function endTimerRun() {
   clearTimeout(slideTimer);
   inputLocked = true;
   evaluateAchievements();
-  pushLeaderboardEntry();
   clearRunSave();
   refreshContinueButton();
   alert(`Timer ended. Waves cleared: ${timerWaves}. Score: ${totalScore}.`);
@@ -3676,6 +3675,8 @@ function doWin() {
     else if (difficulty === 'Hard') addCompletionStat('hard', gain);
     else addCompletionStat('normal', gain);
   }
+  // Update leaderboard after each completed level for all mode categories except Daily.
+  if (!isCustomRun && sessionType !== 'daily') pushLeaderboardEntry();
   updateScoreChip();
   persistCurrentRun();
   setTimeout(() => showMotive(() => {
