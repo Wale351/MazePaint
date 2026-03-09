@@ -1704,13 +1704,13 @@ async function pullLeaderboardFromSupabase() {
       .from('maze_leaderboard')
       .select('player_name,avatar_url,score,mode,level,created_at')
       .order('score', { ascending: false })
-      .limit(LEADERBOARD_MAX);
+      .limit(400);
     if (error || !Array.isArray(data)) return;
     const remote = data.map(r => ({
       name: r.player_name || 'Player',
       avatar: r.avatar_url || '',
       score: Number(r.score) || 0,
-      mode: r.mode || 'Normal',
+      mode: (r.mode === 'Timer' ? 'Time Mode' : (r.mode || 'Normal')),
       level: Number(r.level) || 1,
       at: r.created_at || new Date().toISOString()
     })).filter(r => r.score > 0);
@@ -2080,7 +2080,7 @@ function avatarFallback(name) {
 
 function pushLeaderboardEntry() {
   if (!playerProfile || !totalScore || sessionType === 'daily') return;
-  const modeLabel = sessionType === 'timer' ? 'Timer' : difficulty;
+  const modeLabel = sessionType === 'timer' ? 'Time Mode' : difficulty;
   const item = {
     name: playerProfile.name,
     avatar: playerProfile.avatar,
@@ -2104,9 +2104,13 @@ function renderLeaderboard() {
     leaderboardListEl.innerHTML = '<div class="lb-empty">No scores yet. Play a run to appear here.</div>';
     return;
   }
-  const sections = ['Normal','Hard','Extra Hard','Timer'].map(mode => {
+  const sections = ['Normal','Hard','Extra Hard','Time Mode'].map(mode => {
     const items = leaderboard
-      .filter(e => (e.mode || 'Normal') === mode)
+      .filter(e => {
+        const m = (e.mode || 'Normal');
+        if (mode === 'Time Mode') return m === 'Time Mode' || m === 'Timer';
+        return m === mode;
+      })
       .sort((a, b) => b.score - a.score || (a.at < b.at ? 1 : -1))
       .slice(0, 10);
     if (!items.length) return '';
@@ -2897,8 +2901,11 @@ if (continueBtnEl) continueBtnEl.addEventListener('click', () => {
   }
   setSlider(DIFF_MODES.indexOf(difficulty), false);
 });
-if (menuLeaderboardBtnEl) menuLeaderboardBtnEl.addEventListener('click', () => {
-  void pullLeaderboardFromSupabase();
+if (menuLeaderboardBtnEl) menuLeaderboardBtnEl.addEventListener('click', async () => {
+  await withLoading('Loading leaderboard...', async () => {
+    await initSupabase();
+    await pullLeaderboardFromSupabase();
+  });
   renderLeaderboard();
   showScreen('leaderboard-screen');
 });
@@ -3655,7 +3662,12 @@ function doWin() {
     }
   }
 
-  const gain = currentLevel * 100 + paintedCount * 10;
+  const gain =
+    sessionType === 'timer' ? 3 :
+    sessionType === 'daily' ? 10 :
+    difficulty === 'Extra Hard' ? 10 :
+    difficulty === 'Hard' ? 7 :
+    5;
   totalScore += gain;
   if (!isCustomRun) {
     if (sessionType === 'daily') addCompletionStat('daily', gain);
