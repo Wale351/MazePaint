@@ -1795,17 +1795,15 @@ async function pullSharedLevels() {
       }
       const mode = row.mode || 'Normal';
       const key = levelKey(mode, row.level || 0);
-      if (!savedBuildLevels[key]) {
-        savedBuildLevels[key] = {
-          rows: lvl.rows,
-          cols: lvl.cols,
-          sr: lvl.sr,
-          sc: lvl.sc,
-          wk: lvl.wk,
-          g: Array.from(lvl.g)
-        };
-        mutated = true;
-      }
+      savedBuildLevels[key] = {
+        rows: lvl.rows,
+        cols: lvl.cols,
+        sr: lvl.sr,
+        sc: lvl.sc,
+        wk: lvl.wk,
+        g: Array.from(lvl.g)
+      };
+      mutated = true;
     }
     if (mutated) {
       persistSavedBuildLevels();
