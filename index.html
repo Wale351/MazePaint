@@ -829,18 +829,41 @@ html,body{
 </div>
 
 <div id="onboarding-screen" class="screen">
-  <div class="card">
-    <h2 id="profile-heading" style="font-family:'Orbitron',monospace;letter-spacing:2px;font-size:16px;margin-bottom:12px;">PLAYER SETUP</h2>
+  <div class="card" style="max-width:520px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <h2 id="profile-heading" style="font-family:'Orbitron',monospace;letter-spacing:2px;font-size:16px;">PROFILE</h2>
+      <button class="btn btn-ghost" id="profile-back-btn" style="padding:8px 14px;">Back</button>
+    </div>
     <div class="field">
       <label for="player-name-input">X Username</label>
       <input id="player-name-input" maxlength="24" placeholder="X Username" />
     </div>
-    <div class="field">
-      <label for="player-pin-input">PIN (4 digits)</label>
-      <input id="player-pin-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" />
+    <div class="profile-stats" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px;">
+      <div class="lb-item" style="grid-template-columns:auto 1fr auto;gap:8px;">
+        <div class="lb-rank">Normal</div>
+        <div class="lb-name" id="profile-score-normal">0</div>
+        <div class="lb-score">pts</div>
+      </div>
+      <div class="lb-item" style="grid-template-columns:auto 1fr auto;gap:8px;">
+        <div class="lb-rank">Hard</div>
+        <div class="lb-name" id="profile-score-hard">0</div>
+        <div class="lb-score">pts</div>
+      </div>
+      <div class="lb-item" style="grid-template-columns:auto 1fr auto;gap:8px;">
+        <div class="lb-rank">Extra</div>
+        <div class="lb-name" id="profile-score-extra">0</div>
+        <div class="lb-score">pts</div>
+      </div>
+      <div class="lb-item" style="grid-template-columns:auto 1fr auto;gap:8px;">
+        <div class="lb-rank">Time</div>
+        <div class="lb-name" id="profile-score-time">0</div>
+        <div class="lb-score">pts</div>
+      </div>
     </div>
-    <button class="btn" id="save-player-btn" style="margin-top:14px;width:100%;">Save Profile</button>
-    <button class="btn btn-ghost" id="profile-back-btn" style="margin-top:10px;width:100%;">Back</button>
+    <div class="profile-actions" style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn" id="save-player-btn" style="flex:1;">Save Profile</button>
+      <button class="btn btn-ghost" id="reset-scores-btn" style="flex:1;">Reset Scores</button>
+    </div>
   </div>
 </div>
 
@@ -971,12 +994,8 @@ function tone(freq, dur, vol) {
     o.start(); o.stop(c.currentTime + dur + 0.01);
   } catch(_) {}
 }
-function playPop()  { tone(580, 0.09, 0.10); }
-function playWin()  {
-  [523,659,784,1047].forEach((f,i) => {
-    setTimeout(() => tone(f, 0.25, 0.13), i * 110);
-  });
-}
+function playPop() {}
+function playWin() {}
 
 /* ── CONSTANTS ── */
 const ACCENTS = ['#4a9eff','#ff6b9d','#ffd166','#a78bfa','#ff6b6b','#06d6a0','#ff9f43','#48dbfb'];
@@ -1017,6 +1036,8 @@ let customLevelPayload = null;
 let isCustomRun = false;
 let inputLocked = false;
 let levelCompleteTriggered = false;
+let paintedColors = null;
+let lastHapticTs = 0;
 const CUSTOM_MODE_LABEL = 'Builder';
 const CUSTOM_LEVEL_LABEL = 'Level 1';
 const SAVED_LEVELS_KEY = 'maze_paint_saved_levels_v1';
@@ -1105,6 +1126,11 @@ const onboardingAvatarPreviewEl = document.getElementById('player-avatar-preview
 const savePlayerBtnEl = document.getElementById('save-player-btn');
 const profileHeadingEl = document.getElementById('profile-heading');
 const profileBackBtnEl = document.getElementById('profile-back-btn');
+const resetScoresBtnEl = document.getElementById('reset-scores-btn');
+const profileScoreNormalEl = document.getElementById('profile-score-normal');
+const profileScoreHardEl = document.getElementById('profile-score-hard');
+const profileScoreExtraEl = document.getElementById('profile-score-extra');
+const profileScoreTimeEl = document.getElementById('profile-score-time');
 const leaderboardListEl = document.getElementById('leaderboard-list');
 const leaderboardBackBtnEl = document.getElementById('leaderboard-back-btn');
 const achievementsListEl = document.getElementById('achievements-list');
@@ -1359,7 +1385,7 @@ function refreshProfileEditingState() {
   const isUser = !!(currentUserName && usersDb[currentUserName]);
   const onboarded = !!(isUser && usersDb[currentUserName].onboarded);
   if (onboardingNameEl) onboardingNameEl.readOnly = onboarded;
-  if (onboardingPinEl) onboardingPinEl.readOnly = onboarded;
+  if (onboardingPinEl) onboardingPinEl.readOnly = true;
   if (onboardingAvatarEl) onboardingAvatarEl.disabled = true;
   if (savePlayerBtnEl) savePlayerBtnEl.style.display = onboarded ? 'none' : 'inline-flex';
 }
@@ -2088,6 +2114,19 @@ function initStatsDefaults() {
   stats.modeClears.timer = stats.modeClears.timer || 0;
 }
 
+function updateProfileStatsUI() {
+  if (!profileScoreNormalEl) return;
+  initStatsDefaults();
+  const n = (stats.modeClears.normal || 0) * 5;
+  const h = (stats.modeClears.hard || 0) * 7;
+  const e = (stats.modeClears.extra || 0) * 10;
+  const t = (stats.modeClears.timer || 0) * 3;
+  profileScoreNormalEl.textContent = String(n);
+  profileScoreHardEl.textContent = String(h);
+  profileScoreExtraEl.textContent = String(e);
+  profileScoreTimeEl.textContent = String(t);
+}
+
 function addCompletionStat(modeKey, scoreGain) {
   initStatsDefaults();
   stats.totalClears += 1;
@@ -2102,6 +2141,7 @@ function addCompletionStat(modeKey, scoreGain) {
   }
   persistStats();
   evaluateAchievements();
+  updateProfileStatsUI();
 }
 
 function walletExistsLocal(walletAddress) {
@@ -3066,10 +3106,7 @@ if (menuProfileBtnEl) menuProfileBtnEl.addEventListener('click', () => {
   const onboarded = !!(currentUserName && usersDb[currentUserName] && usersDb[currentUserName].onboarded);
   onboardingNameEl.value = (playerProfile && playerProfile.name) ? playerProfile.name : (currentUserName || '');
   onboardingNameEl.readOnly = onboarded;
-  if (onboardingPinEl) {
-    onboardingPinEl.value = '';
-    onboardingPinEl.readOnly = onboarded;
-  }
+  updateProfileStatsUI();
   showScreen('onboarding-screen');
 });
 if (profileBackBtnEl) profileBackBtnEl.addEventListener('click', () => {
@@ -3094,6 +3131,11 @@ document.getElementById('open-editor-btn').addEventListener('click', () => {
 });
 const menuBtnEl = document.getElementById('menu-btn');
 if (menuBtnEl) menuBtnEl.addEventListener('click', () => {
+  if (sessionType === 'daily') {
+    const dk = dailyKey();
+    const done = !!(dailyStatus[dk] && dailyStatus[dk].completed);
+    if (!done) { alert('Finish the Daily Challenge before leaving.'); return; }
+  }
   isSliding = false;
   inputLocked = false;
   clearTimeout(slideTimer);
@@ -3425,7 +3467,8 @@ const cell = (r, c) => (r < 0 || c < 0 || r >= gridRows || c >= gridCols) ? 0 : 
 function drawFloorTile(r, c) {
   const x = tx(c), y = ty(r), ts = tileSize;
   const isStart = (r === savedStartR && c === savedStartC);
-  const base = isStart ? '#8f37d8' : (painted[fi(r,c)] ? accentColor : '#7f92b7');
+  const idx = fi(r,c);
+  const base = isStart ? '#8f37d8' : (painted[idx] ? (paintedColors && paintedColors[idx] ? paintedColors[idx] : accentColor) : '#7f92b7');
 
   // Inner floor stays flat.
   bctx.fillStyle = base;
@@ -3732,8 +3775,19 @@ function paintAt(r, c, anim) {
   if (painted[fi(r,c)]) return;
   painted[fi(r,c)] = 1;
   paintedCount++;
+  if (!paintedColors) paintedColors = new Array(gridRows * gridCols);
+  const palette = ['#6ee7ff','#7aa6ff','#9a7bff','#ff7ab2','#ffd166','#7cf4c8','#8ad5ff'];
+  const pi = (paintedCount + r * 7 + c * 11 + currentLevel) % palette.length;
+  paintedColors[fi(r,c)] = palette[pi];
   drawTile(r,c);
-  if (anim) { spawnPop(r,c); startPops(); playPop(); }
+  if (anim) {
+    spawnPop(r,c); startPops(); playPop();
+    const now = performance.now();
+    if (navigator.vibrate && now - lastHapticTs > 40) {
+      navigator.vibrate(8);
+      lastHapticTs = now;
+    }
+  }
   updateHUD();
 }
 
@@ -3996,6 +4050,7 @@ function startLevel() {
   savedStartR   = sr; savedStartC = sc;
   playerRow     = sr; playerCol   = sc;
   painted       = new Uint8Array(gridRows * gridCols);
+  paintedColors = new Array(gridRows * gridCols);
   totalWalkable = wk;
   paintedCount  = 0;
 
@@ -4049,6 +4104,7 @@ function restartLevel() {
   grid         = new Int8Array(savedGrid);
   playerRow    = savedStartR; playerCol = savedStartC;
   painted      = new Uint8Array(gridRows * gridCols);
+  paintedColors = new Array(gridRows * gridCols);
   paintedCount = 0;
 
   drawBoard();
@@ -4725,6 +4781,20 @@ window.MazePaintAdvancedIntegration = {
 if (goSignupBtnEl) goSignupBtnEl.addEventListener('click', () => showScreen('signup-screen'));
 if (goSigninBtnEl) goSigninBtnEl.addEventListener('click', () => showScreen('signin-screen'));
 
+if (resetScoresBtnEl) resetScoresBtnEl.addEventListener('click', () => {
+  const ok = window.confirm('Reset your mode scores? This only affects your profile view.');
+  if (!ok) return;
+  stats.modeClears = { normal:0, hard:0, extra:0, timer:0 };
+  stats.totalClears = 0;
+  stats.totalScoreEarned = 0;
+  stats.dailyClears = 0;
+  stats.timerWavesTotal = 0;
+  persistStats();
+  updateProfileStatsUI();
+  totalScore = 0;
+  updateScoreChip();
+});
+
 if (signupBtnEl) signupBtnEl.addEventListener('click', async () => {
   const nameRaw = (signupNameEl.value || '').trim();
   const pin = normalizePin(signupPinEl && signupPinEl.value);
@@ -4813,10 +4883,7 @@ if (signinBtnEl) signinBtnEl.addEventListener('click', async () => {
     if (!rec.onboarded) {
       onboardingNameEl.value = rec.name;
       onboardingNameEl.readOnly = false;
-      if (onboardingPinEl) {
-        onboardingPinEl.value = '';
-        onboardingPinEl.readOnly = false;
-      }
+      updateProfileStatsUI();
       showScreen('onboarding-screen');
     } else {
       showScreen('menu-screen');
@@ -4827,7 +4894,6 @@ if (signinBtnEl) signinBtnEl.addEventListener('click', async () => {
 if (savePlayerBtnEl) savePlayerBtnEl.addEventListener('click', async () => {
   const name = (onboardingNameEl.value || '').trim().slice(0, 24);
   const normalized = normalizeUserName(name);
-  const pin = normalizePin(onboardingPinEl && onboardingPinEl.value);
   if (!currentUserName) { alert('Please sign in first.'); return; }
   if (usersDb[currentUserName] && usersDb[currentUserName].onboarded) {
     alert('Profile is locked after onboarding.');
@@ -4835,12 +4901,9 @@ if (savePlayerBtnEl) savePlayerBtnEl.addEventListener('click', async () => {
   }
   if (!name) { alert('Please enter your name.'); return; }
   if (normalized !== currentUserName) { alert('X Username cannot be changed after account creation.'); return; }
-  if (!pinValid(pin)) { alert('Please enter a valid 4-digit PIN.'); return; }
-  const pinHash = await hashPin(pin);
   playerProfile = { name, avatar: '' };
   if (usersDb[currentUserName]) {
     usersDb[currentUserName].name = name;
-    usersDb[currentUserName].pinHash = pinHash;
     usersDb[currentUserName].avatar = '';
     usersDb[currentUserName].onboarded = true;
     persistUsersDb();
@@ -4849,7 +4912,7 @@ if (savePlayerBtnEl) savePlayerBtnEl.addEventListener('click', async () => {
   await withLoading('Saving profile...', async () => {
     await initSupabase();
     if (usersDb[currentUserName]) {
-      await upsertUserSupabase(currentUserName, pinHash, name, '', true);
+      await upsertUserSupabase(currentUserName, usersDb[currentUserName].pinHash || '', name, '', true);
     }
     refreshMenuAvatar();
     refreshEditorAccess();
@@ -4880,11 +4943,8 @@ if (sessionUser && usersDb[sessionUser]) {
   if (playerProfile) {
     onboardingNameEl.value = playerProfile.name;
     onboardingNameEl.readOnly = !!usersDb[sessionUser].onboarded;
-    if (onboardingPinEl) {
-      onboardingPinEl.value = '';
-      onboardingPinEl.readOnly = !!usersDb[sessionUser].onboarded;
-    }
   }
+  updateProfileStatsUI();
   setSlider(Math.max(0, DIFF_MODES.indexOf(difficulty)), false);
   if (usersDb[sessionUser].onboarded) showScreen('menu-screen');
   else showScreen('onboarding-screen');
