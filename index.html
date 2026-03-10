@@ -605,6 +605,41 @@ html,body{
   z-index:290;
 }
 
+/* Achievement toast */
+#achievement-toast{
+  position:fixed;
+  bottom:24px;right:24px;
+  background:#121a28;
+  border:1px solid #2b3446;
+  color:#e6eeff;
+  border-radius:14px;
+  padding:12px 16px;
+  font-size:12px;
+  letter-spacing:0.4px;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 12px 40px rgba(0,0,0,0.35);
+  transform:translateX(20px);
+  opacity:0;
+  pointer-events:none;
+  transition:transform 0.35s ease,opacity 0.35s ease;
+  z-index:520;
+}
+#achievement-toast.show{
+  transform:translateX(0);
+  opacity:1;
+}
+#achievement-toast .toast-title{
+  font-family:'Orbitron',monospace;
+  font-size:11px;
+  letter-spacing:1px;
+  color:#7ee787;
+  text-transform:uppercase;
+}
+#achievement-toast .toast-text{
+  font-size:12px;
+  color:#d9e3ff;
+}
+
 /* Global loading overlay */
 #loading-overlay{
   position:fixed;inset:0;
@@ -885,6 +920,12 @@ html,body{
   <span id="motive-text"></span>
 </div>
 <canvas id="confetti-canvas"></canvas>
+<div id="achievement-toast" aria-live="polite">
+  <div>
+    <div class="toast-title">Achievement</div>
+    <div class="toast-text" id="achievement-toast-text">Unlocked</div>
+  </div>
+</div>
 
 <div id="loading-overlay" aria-live="polite" aria-busy="true">
   <div class="loading-card">
@@ -994,11 +1035,18 @@ function tone(freq, dur, vol) {
     o.start(); o.stop(c.currentTime + dur + 0.01);
   } catch(_) {}
 }
-function playPop() {}
-function playWin() {}
+function playPop() {
+  tone(420, 0.04, 0.05);
+}
+function playWin() {
+  [523,659,784].forEach((f,i) => {
+    setTimeout(() => tone(f, 0.12, 0.06), i * 90);
+  });
+}
 
 /* ── CONSTANTS ── */
 const ACCENTS = ['#4a9eff','#ff6b9d','#ffd166','#a78bfa','#ff6b6b','#06d6a0','#ff9f43','#48dbfb'];
+const LEVEL_COLORS = ['#22c55e','#38bdf8','#f97316','#a855f7','#ef4444','#facc15'];
 const DIFF_MODES = ['Normal','Hard','Extra Hard','Time Mode'];
 const DIFF_CFG = {
   'Normal':     { min:5,  max:11, obs:0.10, sc:0.20, cap:20 },
@@ -1026,6 +1074,7 @@ let savedGrid    = null;
 let playerRow    = 0, playerCol    = 0;
 let savedStartR  = 0, savedStartC  = 0;
 let accentColor  = ACCENTS[0];
+let levelPaintColor = ACCENTS[0];
 let totalWalkable = 0, paintedCount = 0;
 let isSliding    = false;
 let slideTimer   = 0;
@@ -1135,6 +1184,8 @@ const leaderboardListEl = document.getElementById('leaderboard-list');
 const leaderboardBackBtnEl = document.getElementById('leaderboard-back-btn');
 const achievementsListEl = document.getElementById('achievements-list');
 const achievementsTopBackBtnEl = document.getElementById('achievements-top-back-btn');
+const achievementToastEl = document.getElementById('achievement-toast');
+const achievementToastTextEl = document.getElementById('achievement-toast-text');
 const editorCanvas   = document.getElementById('editor-canvas');
 const editorMeta     = document.getElementById('editor-meta');
 const editorStatus   = document.getElementById('editor-status');
@@ -1160,6 +1211,7 @@ let confettiRaf = 0;
 let confettiPrev = 0;
 const confettiStars = [];
 let loadingCount = 0;
+let achievementToastTimer = 0;
 
 function showLoading(msg) {
   loadingCount++;
@@ -1844,14 +1896,14 @@ async function pushLeaderboardToSupabase(item) {
   try {
     await supabaseClient
       .from('maze_leaderboard')
-      .insert({
+      .upsert({
         player_name: item.name,
         avatar_url: item.avatar,
         score: item.score,
         mode: item.mode,
         level: item.level,
         created_at: item.at
-      });
+      }, { onConflict: 'player_name,mode' });
   } catch (_) {}
 }
 
@@ -1871,7 +1923,7 @@ async function pullLeaderboardFromSupabase() {
       mode: (r.mode === 'Timer' ? 'Time Mode' : (r.mode || 'Normal')),
       level: Number(r.level) || 1,
       at: r.created_at || new Date().toISOString()
-    })).filter(r => r.score > 0);
+    }));
     if (!remote.length) return;
     leaderboard = remote;
     persistLeaderboard();
@@ -1929,6 +1981,11 @@ function dailyKey() {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
 }
 
+function isDailyLocked() {
+  const dk = dailyKey();
+  return !!(dailyStatus[dk] && dailyStatus[dk].completed);
+}
+
 function hashText(str) {
   let h = 2166136261 >>> 0;
   for (let i = 0; i < str.length; i++) {
@@ -1936,6 +1993,16 @@ function hashText(str) {
     h = Math.imul(h, 16777619) >>> 0;
   }
   return h >>> 0;
+}
+
+function pickLevelColor() {
+  if (!LEVEL_COLORS.length) return ACCENTS[0];
+  if (sessionType === 'daily') {
+    const dk = dailyKey();
+    const idx = hashText(`${dk}|daily-color`) % LEVEL_COLORS.length;
+    return LEVEL_COLORS[idx];
+  }
+  return LEVEL_COLORS[(Math.max(1, currentLevel) - 1) % LEVEL_COLORS.length];
 }
 
 function weekKey() {
@@ -2044,6 +2111,7 @@ function unlockAchievement(id) {
   if (achievements[id]) return false;
   achievements[id] = { at: Date.now() };
   persistAchievements();
+  showAchievementToast(id);
   return true;
 }
 
@@ -2069,6 +2137,19 @@ function renderAchievements() {
       </div>
     `;
   }).join('');
+}
+
+function showAchievementToast(id) {
+  if (!achievementToastEl || !achievementToastTextEl) return;
+  const defs = getAchievementDefs();
+  const def = defs.find(d => d.id === id);
+  const name = def ? def.name : 'Achievement Unlocked';
+  achievementToastTextEl.textContent = name;
+  achievementToastEl.classList.add('show');
+  clearTimeout(achievementToastTimer);
+  achievementToastTimer = setTimeout(() => {
+    achievementToastEl.classList.remove('show');
+  }, 5000);
 }
 
 function updateScoreChip() {
@@ -2100,6 +2181,8 @@ function refreshDailyButton() {
   const dk = dailyKey();
   const done = !!(dailyStatus[dk] && dailyStatus[dk].completed);
   dailyBtnEl.textContent = done ? 'DAILY CHALLENGE ✓' : 'DAILY CHALLENGE';
+  dailyBtnEl.disabled = done;
+  dailyBtnEl.style.opacity = done ? '0.5' : '1';
 }
 
 function initStatsDefaults() {
@@ -2112,6 +2195,41 @@ function initStatsDefaults() {
   stats.modeClears.hard = stats.modeClears.hard || 0;
   stats.modeClears.extra = stats.modeClears.extra || 0;
   stats.modeClears.timer = stats.modeClears.timer || 0;
+}
+
+function modeKeyFromDifficulty(diff, typeOverride) {
+  if (typeOverride === 'timer' || diff === 'Time Mode') return 'timer';
+  if (diff === 'Extra Hard') return 'extra';
+  if (diff === 'Hard') return 'hard';
+  return 'normal';
+}
+
+function modeScore(modeKey) {
+  initStatsDefaults();
+  const points = modeKey === 'extra' ? 10 : modeKey === 'hard' ? 7 : modeKey === 'timer' ? 3 : 5;
+  return (stats.modeClears[modeKey] || 0) * points;
+}
+
+function recomputeStatsTotals() {
+  initStatsDefaults();
+  const n = stats.modeClears.normal || 0;
+  const h = stats.modeClears.hard || 0;
+  const e = stats.modeClears.extra || 0;
+  const t = stats.modeClears.timer || 0;
+  stats.totalClears = n + h + e + t + (stats.dailyClears || 0);
+  stats.totalScoreEarned = (n * 5) + (h * 7) + (e * 10) + (t * 3);
+}
+
+function resetModeScore(modeKey) {
+  initStatsDefaults();
+  if (!modeKey || !stats.modeClears) return;
+  stats.modeClears[modeKey] = 0;
+  recomputeStatsTotals();
+  persistStats();
+  updateProfileStatsUI();
+  if (playerProfile && sessionType !== 'daily') {
+    setLeaderboardScoreForMode(modeKey, 0);
+  }
 }
 
 function updateProfileStatsUI() {
@@ -2251,13 +2369,24 @@ function avatarFallback(name) {
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
-function pushLeaderboardEntry() {
-  if (!playerProfile || !totalScore || sessionType === 'daily') return;
-  const modeLabel = sessionType === 'timer' ? 'Time Mode' : difficulty;
+function normalizeLeaderboardMode(modeLabel) {
+  if (modeLabel === 'Timer') return 'Time Mode';
+  return modeLabel || 'Normal';
+}
+
+function setLeaderboardScoreForMode(modeKey, score) {
+  if (!playerProfile || !playerProfile.name) return;
+  const modeLabel = modeKey === 'timer' ? 'Time Mode' : modeKey === 'extra' ? 'Extra Hard' : modeKey === 'hard' ? 'Hard' : 'Normal';
+  const nameKey = playerProfile.name.toLowerCase();
+  leaderboard = leaderboard.filter(e => {
+    const sameUser = (e.name || '').toLowerCase() === nameKey;
+    const sameMode = normalizeLeaderboardMode(e.mode) === modeLabel;
+    return !(sameUser && sameMode);
+  });
   const item = {
     name: playerProfile.name,
     avatar: playerProfile.avatar,
-    score: totalScore,
+    score: Math.max(0, score | 0),
     level: currentLevel,
     mode: modeLabel,
     at: new Date().toISOString()
@@ -2269,6 +2398,13 @@ function pushLeaderboardEntry() {
   renderLeaderboard();
   void pushLeaderboardToSupabase(item);
   void pullLeaderboardFromSupabase();
+}
+
+function pushLeaderboardEntry() {
+  if (!playerProfile || sessionType === 'daily') return;
+  const modeKey = modeKeyFromDifficulty(difficulty, sessionType);
+  const score = modeScore(modeKey);
+  setLeaderboardScoreForMode(modeKey, score);
 }
 
 function renderLeaderboard() {
@@ -2285,14 +2421,14 @@ function renderLeaderboard() {
     });
     if (!items.length) return '';
 
-    // Accumulate scores per user for cleaner leaderboard.
+    // Keep best score per user for the mode.
     const byUser = new Map();
     for (const e of items) {
       const key = (e.name || 'Player').toLowerCase();
-      if (!byUser.has(key)) {
-        byUser.set(key, { name: e.name || 'Player', avatar: e.avatar || '', score: 0 });
+      const score = Number(e.score) || 0;
+      if (!byUser.has(key) || score > byUser.get(key).score) {
+        byUser.set(key, { name: e.name || 'Player', avatar: e.avatar || '', score });
       }
-      byUser.get(key).score += Number(e.score) || 0;
     }
     const rowsData = Array.from(byUser.values())
       .sort((a, b) => b.score - a.score)
@@ -2376,7 +2512,8 @@ function hydrateSavedRun(run) {
   playerCol = pc;
   totalWalkable = Math.max(1, run.totalWalkable | 0);
   paintedCount = Math.max(0, run.paintedCount | 0);
-  accentColor = typeof run.accentColor === 'string' ? run.accentColor : ACCENTS[(currentLevel - 1) % ACCENTS.length];
+  levelPaintColor = typeof run.accentColor === 'string' ? run.accentColor : pickLevelColor();
+  accentColor = levelPaintColor;
   isCustomRun = false;
   customLevelPayload = null;
   levelCompleteTriggered = false;
@@ -2955,7 +3092,6 @@ function generateModeInfinityLevel(mode, level, allowRecycle = true) {
     const sig = `${mode}|${hashLevelSource(g, rows, cols, sr, sc)}`;
     if (easyInfinityHashSet.has(sig)) continue;
 
-    accentColor = ACCENTS[(level - 1) % ACCENTS.length];
     return { g, sr, sc, wk, rows, cols, sig };
   }
   if (allowRecycle && easyInfinityHashes.length > 1200) {
@@ -3008,6 +3144,10 @@ function generateDailyChallengeSource() {
 }
 
 function startDailyChallenge() {
+  if (isDailyLocked()) {
+    alert('Daily Challenge already completed. New one unlocks at 12:00 AM UTC.');
+    return;
+  }
   sessionType = 'daily';
   difficulty = 'Extra Hard';
   customLevelPayload = null;
@@ -3054,6 +3194,8 @@ function endTimerRun() {
    BUTTONS
 ════════════════════════════════════════ */
 document.getElementById('start-btn').addEventListener('click', () => {
+  const modeKey = modeKeyFromDifficulty(difficulty, difficulty === 'Time Mode' ? 'timer' : 'classic');
+  resetModeScore(modeKey);
   if (difficulty === 'Time Mode') {
     startTimerMode();
   } else {
@@ -3383,7 +3525,6 @@ function interesting(g, sz, sr, sc) {
 function generateLevel() {
   const { size, obsRate, sc } = getLevelConfig();
   gridSize    = size;
-  accentColor = ACCENTS[(currentLevel-1) % ACCENTS.length];
 
   for (let attempt=0; attempt<100; attempt++) {
     const g = new Int8Array(size*size).fill(2);
@@ -3468,7 +3609,7 @@ function drawFloorTile(r, c) {
   const x = tx(c), y = ty(r), ts = tileSize;
   const isStart = (r === savedStartR && c === savedStartC);
   const idx = fi(r,c);
-  const base = isStart ? '#8f37d8' : (painted[idx] ? (paintedColors && paintedColors[idx] ? paintedColors[idx] : accentColor) : '#7f92b7');
+  const base = (isStart || painted[idx]) ? levelPaintColor : '#7f92b7';
 
   // Inner floor stays flat.
   bctx.fillStyle = base;
@@ -3775,10 +3916,6 @@ function paintAt(r, c, anim) {
   if (painted[fi(r,c)]) return;
   painted[fi(r,c)] = 1;
   paintedCount++;
-  if (!paintedColors) paintedColors = new Array(gridRows * gridCols);
-  const palette = ['#6ee7ff','#7aa6ff','#9a7bff','#ff7ab2','#ffd166','#7cf4c8','#8ad5ff'];
-  const pi = (paintedCount + r * 7 + c * 11 + currentLevel) % palette.length;
-  paintedColors[fi(r,c)] = palette[pi];
   drawTile(r,c);
   if (anim) {
     spawnPop(r,c); startPops(); playPop();
@@ -4053,6 +4190,8 @@ function startLevel() {
   paintedColors = new Array(gridRows * gridCols);
   totalWalkable = wk;
   paintedCount  = 0;
+  levelPaintColor = pickLevelColor();
+  accentColor = levelPaintColor;
 
   if (isCustomRun) {
     levelNumberEl.textContent = CUSTOM_LEVEL_LABEL;
