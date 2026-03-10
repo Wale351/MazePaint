@@ -626,34 +626,74 @@ html,body{
 }
 .lb-score-num{font-family:'Cabinet Grotesk',sans-serif;font-size:16px;text-align:right;}
 .lb-level-num{color:#9aa7bf;text-align:right;font-size:12px;}
-.ach-list{
-  width:100%;max-width:520px;display:flex;flex-direction:column;gap:8px;
-}
-.ach-item{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  background:#1a1f2b;border:1px solid #2b3446;border-radius:14px;padding:12px;
-  transition:transform 0.2s ease,border-color 0.2s ease,background 0.2s ease;
-}
-.ach-item:hover{transform:translateY(-1px);border-color:#3a4c68;background:#1e2532}
-.ach-name{font-size:13px;color:#fff}
-.ach-desc{font-size:11px;color:#a4b0c9;margin-top:2px}
-.ach-badge{
-  font-size:10px;letter-spacing:1px;text-transform:uppercase;
-  border-radius:999px;padding:4px 10px;border:1px solid #3d4d6c;color:#9fb0d4;
-}
-.ach-badge.unlocked{
-  border-color:#7ee787;color:#7ee787;background:rgba(126,231,135,0.08);
-}
-#achievements-screen{
+.ach-screen{
   justify-content:flex-start;
-  padding:14px 12px 22px;
+  align-items:center;
+  padding:0;
   overflow:auto;
+  background:#0f1115;
 }
-.screen-topbar{
-  width:100%;max-width:520px;
-  display:flex;align-items:center;gap:10px;
-  margin-bottom:10px;
+.ach-shell{
+  width:100%;
+  max-width:1100px;
+  padding:20px 18px 32px;
 }
+.ach-top{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 0 18px;border-bottom:1px solid rgba(255,255,255,0.05);
+  position:sticky;top:0;background:rgba(15,17,21,0.85);backdrop-filter:blur(6px);z-index:5;
+}
+.ach-back{
+  display:inline-flex;align-items:center;gap:8px;color:#97a3b7;font-size:12px;
+  letter-spacing:1px;text-transform:uppercase;background:none;border:none;cursor:pointer;
+}
+.ach-back:hover{color:#ffffff}
+.ach-title{
+  font-family:'Cabinet Grotesk',sans-serif;
+  font-size:38px;text-transform:uppercase;letter-spacing:1px;margin:0;
+}
+.ach-summary{
+  display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;
+}
+.ach-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 10px;border-radius:999px;font-size:10px;letter-spacing:1px;text-transform:uppercase;
+  border:1px solid rgba(255,255,255,0.1);
+}
+.ach-filters{
+  display:flex;gap:18px;border-bottom:1px solid rgba(255,255,255,0.08);margin-top:18px;
+}
+.ach-filter{
+  padding:10px 2px;background:none;border:none;cursor:pointer;
+  font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8c98ad;
+}
+.ach-filter.active{color:#ffffff;border-bottom:2px solid #ffffff}
+.ach-search{
+  margin-top:14px;
+  width:100%;
+  background:#1a1c23;border:1px solid rgba(255,255,255,0.08);
+  border-radius:14px;padding:10px 12px;color:#fff;font-size:13px;
+}
+.ach-grid{
+  display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:16px;margin-top:20px;
+}
+@media (min-width: 720px){.ach-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media (min-width: 1040px){.ach-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
+.achievement-card{
+  background:#1a1c23;
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:20px;padding:16px;
+  transition:transform 0.2s ease,border-color 0.2s ease,box-shadow 0.2s ease;
+  display:flex;flex-direction:column;gap:10px;
+}
+.achievement-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.14);box-shadow:0 12px 24px -10px rgba(0,0,0,0.5);}
+.achievement-card.locked{opacity:0.7}
+.ach-card-title{font-family:'Cabinet Grotesk',sans-serif;font-size:18px;text-transform:uppercase;}
+.ach-card-desc{font-size:12px;color:#9aa7bf;}
+.ach-card-state{
+  font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#7ee787;
+}
+.ach-card-state.locked{color:#94a3b8;}
 
 /* ══ PROFILE SCREEN ══ */
 @import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700&f[]=satoshi@700,500,400&display=swap');
@@ -815,24 +855,24 @@ html,body{
 /* Achievement toast */
 #achievement-toast{
   position:fixed;
-  bottom:24px;right:24px;
+  top:20px;left:50%;
+  transform:translate(-50%,-10px);
   background:#121a28;
   border:1px solid #2b3446;
   color:#e6eeff;
   border-radius:14px;
-  padding:12px 16px;
+  padding:12px 18px;
   font-size:12px;
   letter-spacing:0.4px;
   display:flex;align-items:center;gap:10px;
   box-shadow:0 12px 40px rgba(0,0,0,0.35);
-  transform:translateX(20px);
   opacity:0;
   pointer-events:none;
-  transition:transform 0.35s ease,opacity 0.35s ease;
+  transition:transform 0.3s ease,opacity 0.3s ease;
   z-index:520;
 }
 #achievement-toast.show{
-  transform:translateX(0);
+  transform:translate(-50%,0);
   opacity:1;
 }
 #achievement-toast .toast-title{
@@ -845,6 +885,11 @@ html,body{
 #achievement-toast .toast-text{
   font-size:12px;
   color:#d9e3ff;
+}
+#achievement-toast .toast-desc{
+  font-size:11px;
+  color:#9aa7bf;
+  margin-top:2px;
 }
 
 /* Global loading overlay */
@@ -1185,12 +1230,30 @@ html,body{
   </div>
 </div>
 
-<div id="achievements-screen" class="screen">
-  <div class="screen-topbar">
-    <button class="back-arrow" id="achievements-top-back-btn" aria-label="Back">←</button>
-    <h2 style="font-family:'Orbitron',monospace;letter-spacing:2px;font-size:16px;">ACHIEVEMENTS</h2>
+<div id="achievements-screen" class="screen ach-screen">
+  <div class="ach-shell">
+    <div class="ach-top">
+      <button class="ach-back" id="achievements-top-back-btn">← Back to Lobby</button>
+      <div style="color:#6c7b96;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Achievements</div>
+    </div>
+
+    <div style="margin-top:18px;">
+      <h2 class="ach-title">Achievements</h2>
+      <div class="ach-summary">
+        <span class="ach-pill" id="ach-pill-unlocked">0 Unlocked</span>
+        <span class="ach-pill" id="ach-pill-remaining">0 Remaining</span>
+      </div>
+    </div>
+
+    <div class="ach-filters" id="ach-filter-tabs">
+      <button class="ach-filter active" data-filter="all">All Items</button>
+      <button class="ach-filter" data-filter="unlocked">Unlocked</button>
+      <button class="ach-filter" data-filter="locked">Locked</button>
+    </div>
+    <input class="ach-search" id="ach-search" placeholder="Search achievements..." />
+
+    <div class="ach-grid" id="achievements-list"></div>
   </div>
-  <div class="ach-list" id="achievements-list"></div>
 </div>
 
 <div id="motive-banner">
@@ -1199,8 +1262,9 @@ html,body{
 <canvas id="confetti-canvas"></canvas>
 <div id="achievement-toast" aria-live="polite">
   <div>
-    <div class="toast-title">Achievement</div>
+    <div class="toast-title">Achievement Unlocked</div>
     <div class="toast-text" id="achievement-toast-text">Unlocked</div>
+    <div class="toast-desc" id="achievement-toast-desc">Nice work.</div>
   </div>
 </div>
 
@@ -1320,6 +1384,9 @@ function playWin() {
     setTimeout(() => tone(f, 0.12, 0.06), i * 90);
   });
 }
+function playAchievementSound() {
+  tone(740, 0.08, 0.06);
+}
 
 /* ── CONSTANTS ── */
 const ACCENTS = ['#4a9eff','#ff6b9d','#ffd166','#a78bfa','#ff6b6b','#06d6a0','#ff9f43','#48dbfb'];
@@ -1395,6 +1462,8 @@ let dailyStatus = {};
 let stats = {};
 let sessionType = 'classic'; // classic | daily | timer
 let leaderboardActiveMode = 'Normal';
+let achievementsFilter = 'all';
+let achievementsSearch = '';
 let usersDb = {};
 let currentUserName = '';
 let runSaveStore = {};
@@ -1406,6 +1475,18 @@ let sharedLevelsLoaded = false;
 let timerRemainingMs = 0;
 let timerHandle = 0;
 let timerWaves = 0;
+let levelStartTs = 0;
+let levelMoves = 0;
+let levelObstacleHits = 0;
+let levelRestarted = false;
+let levelMaxSlide = 0;
+let levelFirstMoveDelay = 0;
+let levelEdgeSlides = 0;
+let levelStopReason = '';
+let levelUsedObstacleBounce = false;
+let sessionClears = 0;
+let sessionModeClears = { normal:0, hard:0, extra:0, timer:0 };
+let lastLevelMetrics = null;
 
 /* ── EDITOR STATE ── */
 let editorRows = 8, editorCols = 8;
@@ -1466,8 +1547,13 @@ const leaderboardPodiumEl = document.getElementById('leaderboard-podium');
 const leaderboardRowsEl = document.getElementById('leaderboard-rows');
 const achievementsListEl = document.getElementById('achievements-list');
 const achievementsTopBackBtnEl = document.getElementById('achievements-top-back-btn');
+const achievementsFilterTabsEl = document.getElementById('ach-filter-tabs');
+const achievementsSearchEl = document.getElementById('ach-search');
+const achievementsUnlockedEl = document.getElementById('ach-pill-unlocked');
+const achievementsRemainingEl = document.getElementById('ach-pill-remaining');
 const achievementToastEl = document.getElementById('achievement-toast');
 const achievementToastTextEl = document.getElementById('achievement-toast-text');
+const achievementToastDescEl = document.getElementById('achievement-toast-desc');
 const editorCanvas   = document.getElementById('editor-canvas');
 const editorMeta     = document.getElementById('editor-meta');
 const editorStatus   = document.getElementById('editor-status');
@@ -2271,6 +2357,16 @@ function isDailyLocked() {
   return !!(dailyStatus[dk] && dailyStatus[dk].completed);
 }
 
+function isYesterdayUtc(prev, current) {
+  if (!prev || !current) return false;
+  const [py, pm, pd] = prev.split('-').map(n => parseInt(n, 10));
+  const [cy, cm, cd] = current.split('-').map(n => parseInt(n, 10));
+  if (!py || !pm || !pd || !cy || !cm || !cd) return false;
+  const prevDate = Date.UTC(py, pm - 1, pd);
+  const curDate = Date.UTC(cy, cm - 1, cd);
+  return curDate - prevDate === 24 * 60 * 60 * 1000;
+}
+
 function hashText(str) {
   let h = 2166136261 >>> 0;
   for (let i = 0; i < str.length; i++) {
@@ -2355,41 +2451,138 @@ function updateTimerChip() {
 }
 
 function getAchievementDefs() {
-  const core = [
-    { id:'first_win', name:'First Steps', desc:'Complete any level.', test: s => (s.totalClears || 0) >= 1 },
-    { id:'daily_complete', name:'Daily Slayer', desc:'Finish any Daily Challenge.', test: s => (s.dailyClears || 0) >= 1 },
-    { id:'extra_hard_win', name:'No Mercy', desc:'Clear an Extra Hard level.', test: s => (s.modeClears?.extra || 0) >= 1 },
-    { id:'timer_wave_3', name:'Fast Hands', desc:'Clear 3 total Timer waves.', test: s => (s.timerWavesTotal || 0) >= 3 },
-    { id:'score_10000', name:'Stacking Points', desc:'Reach 10,000 lifetime score.', test: s => (s.totalScoreEarned || 0) >= 10000 },
-    { id:'clear_20', name:'Consistent', desc:'Complete 20 total levels.', test: s => (s.totalClears || 0) >= 20 }
-  ];
+  const s = stats;
+  const ctx = lastLevelMetrics || {};
+  const hasBoardSizes = (min, max) => {
+    for (let i = min; i <= max; i++) {
+      if (!s.boardSizes || !s.boardSizes.includes(`${i}x${i}`)) return false;
+    }
+    return true;
+  };
+  return [
+    { id:'first_roll', name:'First Roll', desc:'Make the first move.', test: () => s.firstMoveMade },
+    { id:'getting_started', name:'Getting Started', desc:'Complete level 1.', test: () => (s.totalClears || 0) >= 1 },
+    { id:'learning_game', name:'Learning the Game', desc:'Complete level 3.', test: () => (s.totalClears || 0) >= 3 },
+    { id:'first_victory', name:'First Victory', desc:'Complete level 5.', test: () => (s.totalClears || 0) >= 5 },
+    { id:'puzzle_rookie', name:'Puzzle Rookie', desc:'Complete level 10.', test: () => (s.totalClears || 0) >= 10 },
+    { id:'puzzle_apprentice', name:'Puzzle Apprentice', desc:'Complete level 15.', test: () => (s.totalClears || 0) >= 15 },
+    { id:'puzzle_solver', name:'Puzzle Solver', desc:'Complete level 20.', test: () => (s.totalClears || 0) >= 20 },
+    { id:'momentum', name:'Momentum', desc:'Complete 3 levels in a row without restarting.', test: () => (s.noRestartStreak || 0) >= 3 },
+    { id:'clean_start', name:'Clean Start', desc:'Complete a level without hitting an obstacle.', test: () => ctx.obstacleHits === 0 && ctx.moves > 0 },
+    { id:'no_hesitation', name:'No Hesitation', desc:'Complete a level in under 5 seconds.', test: () => (ctx.durationMs || 999999) <= 5000 },
 
-  const pool = [
-    { id:'clear_5', name:'Warm Up', desc:'Complete 5 levels.', test: s => (s.totalClears || 0) >= 5 },
-    { id:'clear_10', name:'Getting Good', desc:'Complete 10 levels.', test: s => (s.totalClears || 0) >= 10 },
-    { id:'clear_30', name:'Deep Run', desc:'Complete 30 levels.', test: s => (s.totalClears || 0) >= 30 },
-    { id:'clear_50', name:'Marathon Mind', desc:'Complete 50 levels.', test: s => (s.totalClears || 0) >= 50 },
-    { id:'score_2500', name:'Pocket Change', desc:'Reach 2,500 lifetime score.', test: s => (s.totalScoreEarned || 0) >= 2500 },
-    { id:'score_5000', name:'Loaded', desc:'Reach 5,000 lifetime score.', test: s => (s.totalScoreEarned || 0) >= 5000 },
-    { id:'score_25000', name:'Big Bank', desc:'Reach 25,000 lifetime score.', test: s => (s.totalScoreEarned || 0) >= 25000 },
-    { id:'normal_8', name:'Normal Grinder', desc:'Clear 8 Normal levels.', test: s => (s.modeClears?.normal || 0) >= 8 },
-    { id:'hard_5', name:'Hard Worker', desc:'Clear 5 Hard levels.', test: s => (s.modeClears?.hard || 0) >= 5 },
-    { id:'extra_3', name:'Pain Tolerance', desc:'Clear 3 Extra Hard levels.', test: s => (s.modeClears?.extra || 0) >= 3 },
-    { id:'timer_5', name:'Clocked In', desc:'Clear 5 Timer waves.', test: s => (s.modeClears?.timer || 0) >= 5 },
-    { id:'timer_10', name:'Race Mode', desc:'Clear 10 Timer waves.', test: s => (s.modeClears?.timer || 0) >= 10 },
-    { id:'timer_20', name:'Stopwatch Tyrant', desc:'Clear 20 Timer waves.', test: s => (s.modeClears?.timer || 0) >= 20 },
-    { id:'daily_3', name:'Daily Discipline', desc:'Finish 3 Daily Challenges.', test: s => (s.dailyClears || 0) >= 3 },
-    { id:'daily_7', name:'Daily Machine', desc:'Finish 7 Daily Challenges.', test: s => (s.dailyClears || 0) >= 7 },
-    { id:'all_modes_1', name:'All-Rounder', desc:'Clear at least one level in Normal, Hard, Extra Hard, and Timer.', test: s => (s.modeClears?.normal || 0) >= 1 && (s.modeClears?.hard || 0) >= 1 && (s.modeClears?.extra || 0) >= 1 && (s.modeClears?.timer || 0) >= 1 },
-    { id:'all_modes_5', name:'Complete Package', desc:'Clear 5+ in all main modes.', test: s => (s.modeClears?.normal || 0) >= 5 && (s.modeClears?.hard || 0) >= 5 && (s.modeClears?.extra || 0) >= 5 && (s.modeClears?.timer || 0) >= 5 },
-    { id:'hard_12', name:'Steel Nerves', desc:'Clear 12 Hard levels.', test: s => (s.modeClears?.hard || 0) >= 12 },
-    { id:'extra_10', name:'Brutalist', desc:'Clear 10 Extra Hard levels.', test: s => (s.modeClears?.extra || 0) >= 10 },
-    { id:'clear_100', name:'Centurion', desc:'Complete 100 levels.', test: s => (s.totalClears || 0) >= 100 }
-  ];
+    { id:'smooth_operator', name:'Smooth Operator', desc:'Complete a level using fewer moves than expected.', test: () => ctx.moves > 0 && ctx.expectedMoves && ctx.moves < ctx.expectedMoves },
+    { id:'efficient_thinker', name:'Efficient Thinker', desc:'Complete a level in exactly the optimal number of moves.', test: () => ctx.moves > 0 && ctx.expectedMoves && ctx.moves === ctx.expectedMoves },
+    { id:'fast_thinker', name:'Fast Thinker', desc:'Complete 5 levels under 10 seconds each.', test: () => (s.fastUnder10 || 0) >= 5 },
+    { id:'speed_demon', name:'Speed Demon', desc:'Complete 10 levels under 10 seconds each.', test: () => (s.fastUnder10 || 0) >= 10 },
+    { id:'precision_master', name:'Precision Master', desc:'Complete a level without touching any obstacle.', test: () => ctx.obstacleHits === 0 && ctx.moves > 0 },
+    { id:'perfect_flow', name:'Perfect Flow', desc:'Complete 3 levels with zero mistakes.', test: () => (s.noMistakeStreak || 0) >= 3 },
+    { id:'bounce_expert', name:'Bounce Expert', desc:'Use obstacles strategically to solve a level.', test: () => !!ctx.usedObstacleBounce },
+    { id:'slide_master', name:'Slide Master', desc:'Perform a slide longer than 10 tiles.', test: () => (s.maxSlide || 0) >= 10 },
+    { id:'endless_glide', name:'Endless Glide', desc:'Perform a slide longer than 15 tiles.', test: () => (s.maxSlide || 0) >= 15 },
+    { id:'mega_glide', name:'Mega Glide', desc:'Perform a slide longer than 20 tiles.', test: () => (s.maxSlide || 0) >= 20 },
 
-  const seedBase = `${weekKey()}|${playerProfile ? playerProfile.name : 'anon'}`;
-  const weekly = seededPick(pool, 12, seedBase);
-  return [...core, ...weekly];
+    { id:'explorer', name:'Explorer', desc:'Play 10 different levels.', test: () => (s.uniqueLevels || []).length >= 10 },
+    { id:'adventurer', name:'Adventurer', desc:'Play 25 levels.', test: () => (s.totalClears || 0) >= 25 },
+    { id:'journey_begins', name:'Journey Begins', desc:'Play 50 levels.', test: () => (s.totalClears || 0) >= 50 },
+    { id:'maze_traveler', name:'Maze Traveler', desc:'Play 100 levels.', test: () => (s.totalClears || 0) >= 100 },
+    { id:'endless_puzzle', name:'Endless Puzzle', desc:'Play 200 levels.', test: () => (s.totalClears || 0) >= 200 },
+    { id:'board_explorer', name:'Board Explorer', desc:'Play every board size from 4x4 to 10x10.', test: () => hasBoardSizes(4, 10) },
+    { id:'board_master', name:'Board Master', desc:'Play boards up to 15x15.', test: () => (s.maxBoardSize || 0) >= 15 },
+    { id:'board_legend', name:'Board Legend', desc:'Play boards up to 20x20.', test: () => (s.maxBoardSize || 0) >= 20 },
+    { id:'giant_puzzle', name:'Giant Puzzle', desc:'Complete a 24x24 board.', test: () => Math.max(gridRows, gridCols) >= 24 },
+    { id:'maze_architect', name:'Maze Architect', desc:'Complete 10 large boards.', test: () => (s.largeBoards || 0) >= 10 },
+
+    { id:'normal_first', name:'First Steps', desc:'Complete your first Normal level.', test: () => (s.modeClears?.normal || 0) >= 1 },
+    { id:'normal_10', name:'Normal Explorer', desc:'Complete 10 Normal levels.', test: () => (s.modeClears?.normal || 0) >= 10 },
+    { id:'normal_25', name:'Normal Veteran', desc:'Complete 25 Normal levels.', test: () => (s.modeClears?.normal || 0) >= 25 },
+    { id:'normal_50', name:'Normal Champion', desc:'Complete 50 Normal levels.', test: () => (s.modeClears?.normal || 0) >= 50 },
+    { id:'normal_100', name:'Normal Master', desc:'Complete 100 Normal levels.', test: () => (s.modeClears?.normal || 0) >= 100 },
+    { id:'normal_clean', name:'Smooth Solver', desc:'Complete a Normal level without hitting an obstacle.', test: () => ctx.modeKey === 'normal' && ctx.obstacleHits === 0 },
+    { id:'normal_efficient', name:'Efficient Player', desc:'Complete a Normal level using minimal moves.', test: () => ctx.modeKey === 'normal' && ctx.expectedMoves && ctx.moves === ctx.expectedMoves },
+    { id:'normal_no_restart_5', name:'Perfect Path', desc:'Solve 5 Normal levels without restarting.', test: () => (sessionModeClears.normal || 0) >= 5 },
+    { id:'normal_session_20', name:'Puzzle Routine', desc:'Play 20 Normal levels in one session.', test: () => (sessionModeClears.normal || 0) >= 20 },
+    { id:'normal_250', name:'Normal Legend', desc:'Complete 250 Normal levels.', test: () => (s.modeClears?.normal || 0) >= 250 },
+
+    { id:'hard_first', name:'Hard Initiate', desc:'Complete first Hard level.', test: () => (s.modeClears?.hard || 0) >= 1 },
+    { id:'hard_5', name:'Hard Challenger', desc:'Complete 5 Hard levels.', test: () => (s.modeClears?.hard || 0) >= 5 },
+    { id:'hard_10', name:'Hard Survivor', desc:'Complete 10 Hard levels.', test: () => (s.modeClears?.hard || 0) >= 10 },
+    { id:'hard_25', name:'Hard Expert', desc:'Complete 25 Hard levels.', test: () => (s.modeClears?.hard || 0) >= 25 },
+    { id:'hard_50', name:'Hard Dominator', desc:'Complete 50 Hard levels.', test: () => (s.modeClears?.hard || 0) >= 50 },
+    { id:'hard_no_restart', name:'Strategic Mind', desc:'Solve a Hard level without restarting.', test: () => ctx.modeKey === 'hard' && !ctx.restarted },
+    { id:'hard_efficient', name:'Calculated Moves', desc:'Solve a Hard level with minimal moves.', test: () => ctx.modeKey === 'hard' && ctx.expectedMoves && ctx.moves === ctx.expectedMoves },
+    { id:'hard_streak_5', name:'Hard Streak', desc:'Complete 5 Hard levels consecutively.', test: () => (s.hardStreak || 0) >= 5 },
+    { id:'hard_75', name:'Hard Puzzle King', desc:'Complete 75 Hard levels.', test: () => (s.modeClears?.hard || 0) >= 75 },
+    { id:'hard_100', name:'Hard Mastermind', desc:'Complete 100 Hard levels.', test: () => (s.modeClears?.hard || 0) >= 100 },
+
+    { id:'extra_first', name:'Fearless Player', desc:'Complete first Extra Hard level.', test: () => (s.modeClears?.extra || 0) >= 1 },
+    { id:'extra_5', name:'Elite Solver', desc:'Complete 5 Extra Hard levels.', test: () => (s.modeClears?.extra || 0) >= 5 },
+    { id:'extra_10', name:'Extra Hard Veteran', desc:'Complete 10 Extra Hard levels.', test: () => (s.modeClears?.extra || 0) >= 10 },
+    { id:'extra_20', name:'Maze Destroyer', desc:'Complete 20 Extra Hard levels.', test: () => (s.modeClears?.extra || 0) >= 20 },
+    { id:'extra_50', name:'Impossible Solver', desc:'Complete 50 Extra Hard levels.', test: () => (s.modeClears?.extra || 0) >= 50 },
+    { id:'extra_no_mistake', name:'Genius Path', desc:'Complete Extra Hard level without mistakes.', test: () => ctx.modeKey === 'extra' && ctx.obstacleHits === 0 },
+    { id:'extra_optimal', name:'Extreme Precision', desc:'Complete Extra Hard level with optimal moves.', test: () => ctx.modeKey === 'extra' && ctx.expectedMoves && ctx.moves === ctx.expectedMoves },
+    { id:'extra_streak_5', name:'Ultimate Challenger', desc:'Complete 5 Extra Hard levels in a row.', test: () => (s.extraStreak || 0) >= 5 },
+    { id:'extra_75', name:'Puzzle Elite', desc:'Complete 75 Extra Hard levels.', test: () => (s.modeClears?.extra || 0) >= 75 },
+    { id:'extra_100', name:'The Grandmaster', desc:'Complete 100 Extra Hard levels.', test: () => (s.modeClears?.extra || 0) >= 100 },
+
+    { id:'timer_first', name:'Against the Clock', desc:'Play Timer mode once.', test: () => (s.modeClears?.timer || 0) >= 1 },
+    { id:'timer_under10', name:'Fast Thinker', desc:'Complete a Timer level under 10 seconds.', test: () => (s.timerUnder10 || 0) >= 1 },
+    { id:'timer_5', name:'Speed Runner', desc:'Complete 5 Timer levels.', test: () => (s.modeClears?.timer || 0) >= 5 },
+    { id:'timer_10', name:'Lightning Brain', desc:'Complete 10 Timer levels.', test: () => (s.modeClears?.timer || 0) >= 10 },
+    { id:'timer_25', name:'Timer Challenger', desc:'Complete 25 Timer levels.', test: () => (s.modeClears?.timer || 0) >= 25 },
+    { id:'timer_50', name:'Speed Demon', desc:'Complete 50 Timer levels.', test: () => (s.modeClears?.timer || 0) >= 50 },
+    { id:'timer_under5', name:'Instant Solver', desc:'Finish a Timer level in under 5 seconds.', test: () => (s.timerUnder5 || 0) >= 1 },
+    { id:'timer_under8_5', name:'Time Master', desc:'Finish 5 Timer levels under 8 seconds.', test: () => (s.timerUnder8 || 0) >= 5 },
+    { id:'timer_under10_20', name:'Fastest Mind', desc:'Finish 20 Timer levels under 10 seconds.', test: () => (s.timerUnder10 || 0) >= 20 },
+    { id:'timer_100', name:'Time Lord', desc:'Complete 100 Timer levels.', test: () => (s.modeClears?.timer || 0) >= 100 },
+
+    { id:'daily_1', name:'Daily Beginner', desc:'Complete your first Daily Challenge.', test: () => (s.dailyClears || 0) >= 1 },
+    { id:'daily_3', name:'Daily Routine', desc:'Complete 3 Daily Challenges.', test: () => (s.dailyClears || 0) >= 3 },
+    { id:'daily_7', name:'Daily Player', desc:'Complete 7 Daily Challenges.', test: () => (s.dailyClears || 0) >= 7 },
+    { id:'daily_14', name:'Daily Dedication', desc:'Complete 14 Daily Challenges.', test: () => (s.dailyClears || 0) >= 14 },
+    { id:'daily_30', name:'Daily Champion', desc:'Complete 30 Daily Challenges.', test: () => (s.dailyClears || 0) >= 30 },
+    { id:'daily_streak_3', name:'Consistency', desc:'Complete 3 Daily Challenges in a row.', test: () => (s.dailyStreak || 0) >= 3 },
+    { id:'daily_streak_7', name:'Reliable Player', desc:'Complete 7 Daily Challenges in a row.', test: () => (s.dailyStreak || 0) >= 7 },
+    { id:'daily_streak_14', name:'Unstoppable', desc:'Complete 14 Daily Challenges in a row.', test: () => (s.dailyStreak || 0) >= 14 },
+    { id:'daily_50', name:'Daily Legend', desc:'Complete 50 Daily Challenges.', test: () => (s.dailyClears || 0) >= 50 },
+    { id:'daily_100', name:'Eternal Solver', desc:'Complete 100 Daily Challenges.', test: () => (s.dailyClears || 0) >= 100 },
+
+    { id:'mode_explorer', name:'Mode Explorer', desc:'Play every game mode once.', test: () => (s.modesPlayed || []).includes('normal') && (s.modesPlayed || []).includes('hard') && (s.modesPlayed || []).includes('extra') && (s.modesPlayed || []).includes('timer') && (s.dailyClears || 0) >= 1 },
+    { id:'multi_mode_player', name:'Multi Mode Player', desc:'Win one level in every mode.', test: () => (s.modeClears?.normal || 0) >= 1 && (s.modeClears?.hard || 0) >= 1 && (s.modeClears?.extra || 0) >= 1 && (s.modeClears?.timer || 0) >= 1 },
+    { id:'adaptable_mind', name:'Adaptable Mind', desc:'Complete 10 levels across different modes.', test: () => (s.totalClears || 0) >= 10 },
+    { id:'all_rounder', name:'All Rounder', desc:'Complete 25 levels across all modes.', test: () => (s.totalClears || 0) >= 25 },
+    { id:'master_modes', name:'Master of Modes', desc:'Complete 100 mixed mode levels.', test: () => (s.totalClears || 0) >= 100 },
+
+    { id:'wall_hugger', name:'Wall Hugger', desc:'Hit obstacles 20 times.', test: () => (s.obstacleHits || 0) >= 20 },
+    { id:'oops', name:'Oops', desc:'Restart a level 5 times.', test: () => (s.restartCount || 0) >= 5 },
+    { id:'try_again', name:'Try Again', desc:'Restart a level 20 times.', test: () => (s.restartCount || 0) >= 20 },
+    { id:'determined', name:'Determined', desc:'Restart a level 50 times.', test: () => (s.restartCount || 0) >= 50 },
+    { id:'lucky_slide', name:'Lucky Slide', desc:'Solve a level with one slide.', test: () => ctx.moves === 1 },
+    { id:'getting_serious', name:'Getting Serious', desc:'Play 10 levels in one session.', test: () => sessionClears >= 10 },
+    { id:'the_thinker', name:'The Thinker', desc:'Wait 10 seconds before the first move then solve.', test: () => (ctx.firstMoveDelay || 0) >= 10000 },
+    { id:'strategic_mind', name:'Strategic Mind', desc:'Solve a level after restarting.', test: () => !!ctx.restarted },
+    { id:'adaptive_player', name:'Adaptive Player', desc:'Solve a level after hitting obstacles 5 times.', test: () => (ctx.obstacleHits || 0) >= 5 },
+    { id:'rebound_genius', name:'Rebound Genius', desc:'Use an obstacle bounce to reach the finish.', test: () => !!ctx.usedObstacleBounce },
+    { id:'trick_shot', name:'Trick Shot', desc:'Solve a level using only obstacle rebounds.', test: () => !!ctx.usedObstacleBounce && ctx.moves === 1 },
+    { id:'edge_walker', name:'Edge Walker', desc:'Slide along the board edge 5 times in one level.', test: () => (ctx.edgeSlides || 0) >= 5 },
+    { id:'perfect_mind', name:'Perfect Mind', desc:'Solve 5 levels without mistakes.', test: () => (s.noMistakeStreak || 0) >= 5 },
+    { id:'brain_power', name:'Brain Power', desc:'Solve 10 levels consecutively.', test: () => (s.noRestartStreak || 0) >= 10 },
+
+    { id:'puzzle_veteran', name:'Puzzle Veteran', desc:'Complete 200 levels.', test: () => (s.totalClears || 0) >= 200 },
+    { id:'puzzle_addict', name:'Puzzle Addict', desc:'Complete 300 levels.', test: () => (s.totalClears || 0) >= 300 },
+    { id:'maze_legend', name:'Maze Legend', desc:'Complete 500 levels.', test: () => (s.totalClears || 0) >= 500 },
+    { id:'endless_champion', name:'Endless Champion', desc:'Complete 1000 levels.', test: () => (s.totalClears || 0) >= 1000 },
+
+    { id:'marathon_30', name:'Marathon Player', desc:'Play for 30 minutes total.', test: () => (s.totalPlayMs || 0) >= 30 * 60 * 1000 },
+    { id:'endless_mind', name:'Endless Mind', desc:'Play for 1 hour total.', test: () => (s.totalPlayMs || 0) >= 60 * 60 * 1000 },
+    { id:'devoted_player', name:'Devoted Player', desc:'Play for 5 hours total.', test: () => (s.totalPlayMs || 0) >= 5 * 60 * 60 * 1000 },
+
+    { id:'secret_move', name:'Secret Move', desc:'Discover a hidden path.', test: () => ctx.usedObstacleBounce && ctx.moves === 1 },
+    { id:'ghost_runner', name:'Ghost Runner', desc:'Complete a level without stopping.', test: () => ctx.moves === 1 },
+    { id:'chosen_one', name:'The Chosen One', desc:'A rare unlock.', test: () => (s.totalClears || 0) >= 100 && !!lastLevelMetrics && Math.random() < 0.01 },
+    { id:'ultimate_master', name:'Ultimate Maze Master', desc:'Unlock all achievements.', test: () => false }
+  ];
 }
 
 function unlockAchievement(id) {
@@ -2405,23 +2598,36 @@ function evaluateAchievements() {
   for (const d of defs) {
     if (!achievements[d.id] && d.test(stats)) unlockAchievement(d.id);
   }
+  const remaining = defs.filter(d => d.id !== 'ultimate_master' && !achievements[d.id]);
+  if (!achievements.ultimate_master && remaining.length === 0) unlockAchievement('ultimate_master');
 }
 
 function renderAchievements() {
   if (!achievementsListEl) return;
+  initStatsDefaults();
   const defs = getAchievementDefs();
-  achievementsListEl.innerHTML = defs.map(d => {
+  const unlockedCount = defs.filter(d => achievements[d.id]).length;
+  const remainingCount = Math.max(0, defs.length - unlockedCount);
+  if (achievementsUnlockedEl) achievementsUnlockedEl.textContent = `${unlockedCount} Unlocked`;
+  if (achievementsRemainingEl) achievementsRemainingEl.textContent = `${remainingCount} Remaining`;
+
+  let filtered = defs;
+  if (achievementsFilter === 'unlocked') filtered = defs.filter(d => achievements[d.id]);
+  else if (achievementsFilter === 'locked') filtered = defs.filter(d => !achievements[d.id]);
+  if (achievementsSearch) {
+    filtered = filtered.filter(d => `${d.name} ${d.desc}`.toLowerCase().includes(achievementsSearch));
+  }
+
+  achievementsListEl.innerHTML = filtered.map(d => {
     const hit = !!achievements[d.id];
     return `
-      <div class="ach-item">
-        <div>
-          <div class="ach-name">${escapeHtml(d.name)}</div>
-          <div class="ach-desc">${escapeHtml(d.desc)}</div>
-        </div>
-        <span class="ach-badge ${hit ? 'unlocked' : ''}">${hit ? 'Unlocked' : 'Locked'}</span>
+      <div class="achievement-card ${hit ? '' : 'locked'}">
+        <div class="ach-card-title">${escapeHtml(d.name)}</div>
+        <div class="ach-card-desc">${escapeHtml(d.desc)}</div>
+        <div class="ach-card-state ${hit ? '' : 'locked'}">${hit ? 'Unlocked' : 'Locked'}</div>
       </div>
     `;
-  }).join('');
+  }).join('') || '<div style="color:#8ea0bf;">No achievements found.</div>';
 }
 
 function showAchievementToast(id) {
@@ -2429,12 +2635,15 @@ function showAchievementToast(id) {
   const defs = getAchievementDefs();
   const def = defs.find(d => d.id === id);
   const name = def ? def.name : 'Achievement Unlocked';
+  const desc = def ? def.desc : '';
   achievementToastTextEl.textContent = name;
+  if (achievementToastDescEl) achievementToastDescEl.textContent = desc;
   achievementToastEl.classList.add('show');
+  playAchievementSound();
   clearTimeout(achievementToastTimer);
   achievementToastTimer = setTimeout(() => {
     achievementToastEl.classList.remove('show');
-  }, 5000);
+  }, 3000);
 }
 
 function updateScoreChip() {
@@ -2475,6 +2684,28 @@ function initStatsDefaults() {
   stats.totalScoreEarned = stats.totalScoreEarned || 0;
   stats.dailyClears = stats.dailyClears || 0;
   stats.timerWavesTotal = stats.timerWavesTotal || 0;
+  stats.firstMoveMade = stats.firstMoveMade || false;
+  stats.totalMoves = stats.totalMoves || 0;
+  stats.obstacleHits = stats.obstacleHits || 0;
+  stats.restartCount = stats.restartCount || 0;
+  stats.maxSlide = stats.maxSlide || 0;
+  stats.fastUnder10 = stats.fastUnder10 || 0;
+  stats.fastUnder5 = stats.fastUnder5 || 0;
+  stats.timerUnder10 = stats.timerUnder10 || 0;
+  stats.timerUnder5 = stats.timerUnder5 || 0;
+  stats.timerUnder8 = stats.timerUnder8 || 0;
+  stats.noRestartStreak = stats.noRestartStreak || 0;
+  stats.noMistakeStreak = stats.noMistakeStreak || 0;
+  stats.hardStreak = stats.hardStreak || 0;
+  stats.extraStreak = stats.extraStreak || 0;
+  stats.dailyStreak = stats.dailyStreak || 0;
+  stats.dailyLastDate = stats.dailyLastDate || '';
+  stats.totalPlayMs = stats.totalPlayMs || 0;
+  if (!Array.isArray(stats.uniqueLevels)) stats.uniqueLevels = [];
+  if (!Array.isArray(stats.boardSizes)) stats.boardSizes = [];
+  stats.maxBoardSize = stats.maxBoardSize || 0;
+  stats.largeBoards = stats.largeBoards || 0;
+  if (!Array.isArray(stats.modesPlayed)) stats.modesPlayed = [];
   if (!stats.modeClears || typeof stats.modeClears !== 'object') stats.modeClears = {};
   stats.modeClears.normal = stats.modeClears.normal || 0;
   stats.modeClears.hard = stats.modeClears.hard || 0;
@@ -2517,6 +2748,27 @@ function resetModeScore(modeKey) {
   }
 }
 
+function addUniqueStat(listKey, value) {
+  initStatsDefaults();
+  if (!Array.isArray(stats[listKey])) stats[listKey] = [];
+  if (!stats[listKey].includes(value)) stats[listKey].push(value);
+}
+
+function recordBoardSize(rows, cols) {
+  const sizeKey = `${rows}x${cols}`;
+  addUniqueStat('boardSizes', sizeKey);
+  const maxSize = Math.max(rows, cols);
+  if (maxSize > (stats.maxBoardSize || 0)) stats.maxBoardSize = maxSize;
+}
+
+function recordUniqueLevel(modeKey, levelNum) {
+  addUniqueStat('uniqueLevels', `${modeKey}:${levelNum}`);
+}
+
+function recordModePlayed(modeKey) {
+  addUniqueStat('modesPlayed', modeKey);
+}
+
 function updateProfileStatsUI() {
   if (!profileScoreNormalEl) return;
   initStatsDefaults();
@@ -2545,6 +2797,45 @@ function addCompletionStat(modeKey, scoreGain) {
   persistStats();
   evaluateAchievements();
   updateProfileStatsUI();
+}
+
+function recordLevelCompletion(modeKey) {
+  initStatsDefaults();
+  const durationMs = Math.max(1, performance.now() - levelStartTs);
+  const expectedMoves = Math.max(3, Math.round(totalWalkable / Math.max(1, Math.max(gridRows, gridCols))));
+  stats.totalPlayMs += durationMs;
+  if (durationMs < 10000) stats.fastUnder10 += 1;
+  if (durationMs < 5000) stats.fastUnder5 += 1;
+  if (modeKey === 'timer' && durationMs < 10000) stats.timerUnder10 += 1;
+  if (modeKey === 'timer' && durationMs < 5000) stats.timerUnder5 += 1;
+  if (modeKey === 'timer' && durationMs < 8000) stats.timerUnder8 = (stats.timerUnder8 || 0) + 1;
+  if (levelObstacleHits === 0) stats.noMistakeStreak += 1;
+  else stats.noMistakeStreak = 0;
+  if (!levelRestarted) stats.noRestartStreak += 1;
+  else stats.noRestartStreak = 0;
+  if (modeKey === 'hard') stats.hardStreak = (stats.hardStreak || 0) + 1;
+  else stats.hardStreak = 0;
+  if (modeKey === 'extra') stats.extraStreak = (stats.extraStreak || 0) + 1;
+  else stats.extraStreak = 0;
+  recordBoardSize(gridRows, gridCols);
+  recordUniqueLevel(modeKey, currentLevel);
+  recordModePlayed(modeKey);
+  if (Math.max(gridRows, gridCols) >= 15) stats.largeBoards = (stats.largeBoards || 0) + 1;
+
+  lastLevelMetrics = {
+    modeKey,
+    durationMs,
+    moves: levelMoves,
+    obstacleHits: levelObstacleHits,
+    restarted: levelRestarted,
+    maxSlide: levelMaxSlide,
+    firstMoveDelay: levelFirstMoveDelay,
+    edgeSlides: levelEdgeSlides,
+    stopReason: levelStopReason,
+    usedObstacleBounce: levelUsedObstacleBounce,
+    expectedMoves
+  };
+  persistStats();
 }
 
 function walletExistsLocal(walletAddress) {
@@ -3547,9 +3838,32 @@ if (menuLeaderboardBtnEl) menuLeaderboardBtnEl.addEventListener('click', async (
   showScreen('leaderboard-screen');
 });
 if (menuAchievementsBtnEl) menuAchievementsBtnEl.addEventListener('click', () => {
+  achievementsFilter = 'all';
+  achievementsSearch = '';
+  if (achievementsSearchEl) achievementsSearchEl.value = '';
+  if (achievementsFilterTabsEl) {
+    achievementsFilterTabsEl.querySelectorAll('.ach-filter').forEach(t => {
+      t.classList.toggle('active', t.getAttribute('data-filter') === 'all');
+    });
+  }
   renderAchievements();
   showScreen('achievements-screen');
 });
+if (achievementsFilterTabsEl) {
+  achievementsFilterTabsEl.addEventListener('click', e => {
+    const btn = e.target.closest('.ach-filter');
+    if (!btn) return;
+    achievementsFilter = btn.getAttribute('data-filter') || 'all';
+    achievementsFilterTabsEl.querySelectorAll('.ach-filter').forEach(t => t.classList.toggle('active', t === btn));
+    renderAchievements();
+  });
+}
+if (achievementsSearchEl) {
+  achievementsSearchEl.addEventListener('input', e => {
+    achievementsSearch = String(e.target.value || '').trim().toLowerCase();
+    renderAchievements();
+  });
+}
 if (menuSignoutBtnEl) menuSignoutBtnEl.addEventListener('click', () => {
   signOutUser();
 });
@@ -4270,6 +4584,16 @@ function slide(di) {
   const dr=D4[di*2], dc=D4[di*2+1];
   const path = [];
   let r=playerRow, c=playerCol;
+  const nr0 = r + dr, nc0 = c + dc;
+  if (nr0 < 0 || nr0 >= gridRows || nc0 < 0 || nc0 >= gridCols) return;
+  const v0 = grid[fi(nr0, nc0)];
+  if (v0 === 2) {
+    levelObstacleHits++;
+    initStatsDefaults();
+    stats.obstacleHits += 1;
+    persistStats();
+    return;
+  }
   while (true) {
     const nr=r+dr, nc=c+dc;
     if (nr<0||nr>=gridRows||nc<0||nc>=gridCols) break;
@@ -4278,8 +4602,31 @@ function slide(di) {
     r=nr; c=nc; path.push(r,c);
   }
   if (!path.length) return;
+  const stopR = r + dr, stopC = c + dc;
+  if (stopR >= 0 && stopR < gridRows && stopC >= 0 && stopC < gridCols && grid[fi(stopR, stopC)] === 2) {
+    levelStopReason = 'obstacle';
+    levelUsedObstacleBounce = true;
+    levelObstacleHits += 1;
+    initStatsDefaults();
+    stats.obstacleHits += 1;
+    persistStats();
+  } else {
+    levelStopReason = 'wall';
+  }
 
   isSliding = true;
+  levelMoves += 1;
+  initStatsDefaults();
+  stats.totalMoves += 1;
+  if (!stats.firstMoveMade) stats.firstMoveMade = true;
+  if (!levelFirstMoveDelay) levelFirstMoveDelay = Math.max(0, performance.now() - levelStartTs);
+  const slideLen = path.length >> 1;
+  if (slideLen > levelMaxSlide) levelMaxSlide = slideLen;
+  if (slideLen > (stats.maxSlide || 0)) stats.maxSlide = slideLen;
+  if (dr === 0 && (playerRow === 0 || playerRow === gridRows - 1)) levelEdgeSlides += 1;
+  if (dc === 0 && (playerCol === 0 || playerCol === gridCols - 1)) levelEdgeSlides += 1;
+  persistStats();
+  evaluateAchievements();
   const ms = Math.max(48, Math.min(90, 520/(Math.max(gridRows, gridCols)*1.4)));
   animatePath(path, ms, () => { isSliding=false; checkWin(); });
 }
@@ -4327,11 +4674,19 @@ function doWin() {
     5;
   totalScore += gain;
   if (!isCustomRun) {
-    if (sessionType === 'daily') addCompletionStat('daily', gain);
-    else if (sessionType === 'timer') addCompletionStat('timer', gain);
-    else if (difficulty === 'Extra Hard') addCompletionStat('extra', gain);
-    else if (difficulty === 'Hard') addCompletionStat('hard', gain);
+    const modeKey = sessionType === 'daily'
+      ? 'daily'
+      : (sessionType === 'timer' ? 'timer' : modeKeyFromDifficulty(difficulty));
+    recordLevelCompletion(modeKey);
+    if (modeKey === 'daily') addCompletionStat('daily', gain);
+    else if (modeKey === 'timer') addCompletionStat('timer', gain);
+    else if (modeKey === 'extra') addCompletionStat('extra', gain);
+    else if (modeKey === 'hard') addCompletionStat('hard', gain);
     else addCompletionStat('normal', gain);
+    sessionClears += 1;
+    if (modeKey !== 'daily') {
+      sessionModeClears[modeKey] = (sessionModeClears[modeKey] || 0) + 1;
+    }
   }
   // Update leaderboard after each completed level for all mode categories except Daily.
   if (!isCustomRun && sessionType !== 'daily') pushLeaderboardEntry();
@@ -4349,6 +4704,11 @@ function doWin() {
       const prevBest = (dailyStatus[dk] && dailyStatus[dk].bestScore) || 0;
       dailyStatus[dk] = { completed: true, bestScore: Math.max(prevBest, totalScore) };
       persistDailyStatus();
+      initStatsDefaults();
+      if (stats.dailyLastDate && isYesterdayUtc(stats.dailyLastDate, dk)) stats.dailyStreak += 1;
+      else stats.dailyStreak = 1;
+      stats.dailyLastDate = dk;
+      persistStats();
       refreshDailyButton();
       pushLeaderboardEntry();
       clearRunSave();
@@ -4413,6 +4773,15 @@ function startLevel() {
   isSliding = false;
   inputLocked = true;
   levelCompleteTriggered = false;
+  levelStartTs = performance.now();
+  levelMoves = 0;
+  levelObstacleHits = 0;
+  levelRestarted = false;
+  levelMaxSlide = 0;
+  levelFirstMoveDelay = 0;
+  levelEdgeSlides = 0;
+  levelStopReason = '';
+  levelUsedObstacleBounce = false;
   clearTimeout(slideTimer);
   cancelAnimationFrame(popRaf); popRaf = 0; popPrev = 0;
   pops.forEach(p => { p.on=false; });
@@ -4561,6 +4930,21 @@ function startLevel() {
 function restartLevel() {
   if (isSliding || inputLocked) return;
   levelCompleteTriggered = false;
+  levelRestarted = true;
+  levelMoves = 0;
+  levelObstacleHits = 0;
+  levelMaxSlide = 0;
+  levelFirstMoveDelay = 0;
+  levelEdgeSlides = 0;
+  levelStopReason = '';
+  levelUsedObstacleBounce = false;
+  levelStartTs = performance.now();
+  initStatsDefaults();
+  stats.restartCount += 1;
+  stats.noRestartStreak = 0;
+  persistStats();
+  sessionModeClears = { normal:0, hard:0, extra:0, timer:0 };
+  sessionClears = 0;
   clearTimeout(slideTimer);
   cancelAnimationFrame(popRaf); popRaf = 0; popPrev = 0;
   pops.forEach(p => { p.on=false; });
