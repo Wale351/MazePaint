@@ -550,6 +550,82 @@ html,body{
   color:#c6d7ff;
   letter-spacing:0.5px;
 }
+.lb-screen{
+  justify-content:flex-start;
+  align-items:center;
+  padding:0;
+  overflow:auto;
+  background:#0f1115;
+}
+.lb-shell{
+  width:100%;
+  max-width:1100px;
+  padding:20px 18px 32px;
+}
+.lb-top{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 0 18px;border-bottom:1px solid rgba(255,255,255,0.05);
+  position:sticky;top:0;background:rgba(15,17,21,0.85);backdrop-filter:blur(6px);z-index:5;
+}
+.lb-back{
+  display:inline-flex;align-items:center;gap:8px;color:#97a3b7;font-size:12px;
+  letter-spacing:1px;text-transform:uppercase;background:none;border:none;cursor:pointer;
+}
+.lb-back:hover{color:#ffffff}
+.lb-title{
+  font-family:'Cabinet Grotesk',sans-serif;
+  font-size:38px;text-transform:uppercase;letter-spacing:1px;margin:0;
+}
+.lb-sub{color:#9aa7bf;font-size:12px;letter-spacing:1px;margin-top:6px}
+.lb-tabs{display:flex;gap:18px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.lb-tab{
+  padding:10px 2px;
+  background:none;border:none;cursor:pointer;
+  font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8c98ad;
+}
+.lb-tab.active{color:#ffffff;border-bottom:2px solid #ffffff}
+.lb-podium{
+  display:grid;grid-template-columns:1fr;gap:16px;margin:20px 0 26px;
+}
+@media (min-width: 900px){.lb-podium{grid-template-columns:repeat(3,1fr);align-items:end;}}
+.podium-card{
+  background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);
+  border-radius:24px;padding:18px;text-align:center;position:relative;
+}
+.podium-rank{
+  position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
+  width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;
+}
+.podium-avatar{
+  width:90px;height:90px;border-radius:50%;overflow:hidden;border:3px solid rgba(255,255,255,0.2);margin:0 auto 10px;
+}
+.podium-name{font-family:'Cabinet Grotesk',sans-serif;font-size:20px;text-transform:uppercase;margin:4px 0}
+.podium-score{font-family:'Cabinet Grotesk',sans-serif;font-size:28px;color:#e9f0ff}
+.lb-list{
+  background:#1a1c23;border:1px solid rgba(255,255,255,0.06);border-radius:24px;overflow:hidden;
+}
+.lb-list-header{
+  display:grid;grid-template-columns:60px 1fr 90px 120px;
+  gap:10px;padding:12px 18px;background:rgba(255,255,255,0.02);
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8ea0bf;border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.lb-row{
+  display:grid;grid-template-columns:60px 1fr 90px 120px;
+  gap:10px;padding:12px 18px;align-items:center;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  transition:transform 0.2s ease,background 0.2s ease;
+}
+.lb-row:hover{transform:translateX(4px);background:rgba(255,255,255,0.02)}
+.lb-player{
+  display:flex;align-items:center;gap:12px;
+}
+.lb-player img{width:36px;height:36px;border-radius:12px;object-fit:cover;border:1px solid rgba(255,255,255,0.08)}
+.lb-you{
+  font-size:9px;padding:2px 6px;border-radius:999px;background:rgba(126,231,135,0.12);color:#7ee787;text-transform:uppercase;letter-spacing:1px;margin-left:6px;
+}
+.lb-score-num{font-family:'Cabinet Grotesk',sans-serif;font-size:16px;text-align:right;}
+.lb-level-num{color:#9aa7bf;text-align:right;font-size:12px;}
 .ach-list{
   width:100%;max-width:520px;display:flex;flex-direction:column;gap:8px;
 }
@@ -1075,10 +1151,38 @@ html,body{
   </div>
 </div>
 
-<div id="leaderboard-screen" class="screen">
-  <h2 style="font-family:'Orbitron',monospace;letter-spacing:2px;font-size:16px;margin-bottom:12px;">LEADERBOARD</h2>
-  <div id="leaderboard-list"></div>
-  <button class="btn btn-ghost" id="leaderboard-back-btn" style="margin-top:14px;">Back</button>
+<div id="leaderboard-screen" class="screen lb-screen">
+  <div class="lb-shell">
+    <div class="lb-top">
+      <button class="lb-back" id="leaderboard-back-btn">← Back to Lobby</button>
+      <div style="color:#6c7b96;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Leaderboard</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px;margin-top:18px;">
+      <div>
+        <h2 class="lb-title">Leaderboard</h2>
+        <div class="lb-sub">Competing for the highest scores in the realm.</div>
+      </div>
+      <div class="lb-tabs" id="leaderboard-tabs">
+        <button class="lb-tab active" data-mode="Normal">Normal</button>
+        <button class="lb-tab" data-mode="Hard">Hard</button>
+        <button class="lb-tab" data-mode="Extra Hard">Extra</button>
+        <button class="lb-tab" data-mode="Time Mode">Time Trial</button>
+      </div>
+    </div>
+
+    <div class="lb-podium" id="leaderboard-podium"></div>
+
+    <div class="lb-list">
+      <div class="lb-list-header">
+        <div>Rank</div>
+        <div>Player</div>
+        <div style="text-align:right;">Level</div>
+        <div style="text-align:right;">Total Score</div>
+      </div>
+      <div id="leaderboard-rows"></div>
+    </div>
+  </div>
 </div>
 
 <div id="achievements-screen" class="screen">
@@ -1290,6 +1394,7 @@ let achievements = {};
 let dailyStatus = {};
 let stats = {};
 let sessionType = 'classic'; // classic | daily | timer
+let leaderboardActiveMode = 'Normal';
 let usersDb = {};
 let currentUserName = '';
 let runSaveStore = {};
@@ -1356,6 +1461,9 @@ const profileScoreExtraEl = document.getElementById('profile-score-extra');
 const profileScoreTimeEl = document.getElementById('profile-score-time');
 const leaderboardListEl = document.getElementById('leaderboard-list');
 const leaderboardBackBtnEl = document.getElementById('leaderboard-back-btn');
+const leaderboardTabsEl = document.getElementById('leaderboard-tabs');
+const leaderboardPodiumEl = document.getElementById('leaderboard-podium');
+const leaderboardRowsEl = document.getElementById('leaderboard-rows');
 const achievementsListEl = document.getElementById('achievements-list');
 const achievementsTopBackBtnEl = document.getElementById('achievements-top-back-btn');
 const achievementToastEl = document.getElementById('achievement-toast');
@@ -2585,48 +2693,72 @@ function pushLeaderboardEntry() {
 }
 
 function renderLeaderboard() {
-  if (!leaderboardListEl) return;
-  if (!leaderboard.length) {
-    leaderboardListEl.innerHTML = '<div class="lb-empty">No scores yet. Play a run to appear here.</div>';
+  if (!leaderboardRowsEl || !leaderboardPodiumEl) return;
+  const mode = leaderboardActiveMode || 'Normal';
+  const items = leaderboard.filter(e => {
+    const m = normalizeLeaderboardMode(e.mode);
+    if (mode === 'Time Mode') return m === 'Time Mode';
+    return m === mode;
+  });
+
+  const byUser = new Map();
+  for (const e of items) {
+    const key = (e.name || 'Player').toLowerCase();
+    const score = Number(e.score) || 0;
+    const level = Number(e.level) || 1;
+    if (!byUser.has(key) || score > byUser.get(key).score) {
+      byUser.set(key, {
+        name: e.name || 'Player',
+        avatar: e.avatar || '',
+        score,
+        level
+      });
+    }
+  }
+  const rowsData = Array.from(byUser.values()).sort((a, b) => b.score - a.score);
+  const top3 = rowsData.slice(0, 3);
+  const rest = rowsData.slice(3, 30);
+
+  leaderboardPodiumEl.innerHTML = top3.map((p, idx) => {
+    const rank = idx + 1;
+    const colors = rank === 1 ? '#f59e0b' : rank === 2 ? '#94a3b8' : '#b45309';
+    const avatarSrc = (p.avatar && String(p.avatar).trim()) ? p.avatar : avatarFallback(p.name);
+    return `
+      <div class="podium-card">
+        <div class="podium-avatar" style="border-color:${colors};">
+          <img src="${avatarSrc}" alt="${escapeHtml(p.name)}">
+        </div>
+        <div class="podium-name">${escapeHtml(p.name)}</div>
+        <div class="podium-score">${p.score}</div>
+        <div class="podium-rank" style="background:${colors};color:#0f1115;">${rank}</div>
+      </div>
+    `;
+  }).join('');
+
+  if (!rowsData.length) {
+    leaderboardRowsEl.innerHTML = `<div style="padding:18px;color:#8ea0bf;">No scores yet. Play a run to appear here.</div>`;
     return;
   }
-  const sections = ['Normal','Hard','Extra Hard','Time Mode'].map(mode => {
-    const items = leaderboard.filter(e => {
-      const m = (e.mode || 'Normal');
-      if (mode === 'Time Mode') return m === 'Time Mode' || m === 'Timer';
-      return m === mode;
-    });
-    if (!items.length) return '';
 
-    // Keep best score per user for the mode.
-    const byUser = new Map();
-    for (const e of items) {
-      const key = (e.name || 'Player').toLowerCase();
-      const score = Number(e.score) || 0;
-      if (!byUser.has(key) || score > byUser.get(key).score) {
-        byUser.set(key, { name: e.name || 'Player', avatar: e.avatar || '', score });
-      }
-    }
-    const rowsData = Array.from(byUser.values())
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10);
-    if (!rowsData.length) return '';
-
-    const rows = rowsData.map((e, idx) => {
-      const safeName = escapeHtml(e.name);
-      const avatarSrc = (e.avatar && String(e.avatar).trim()) ? e.avatar : avatarFallback(e.name);
-      return `
-        <div class="lb-item">
-          <div class="lb-rank">#${idx + 1}</div>
-          <img class="lb-avatar" src="${avatarSrc}" alt="${safeName}">
-          <div class="lb-name">${safeName}</div>
-          <div class="lb-score">${e.score}</div>
+  leaderboardRowsEl.innerHTML = rest.map((p, i) => {
+    const rank = i + 4;
+    const avatarSrc = (p.avatar && String(p.avatar).trim()) ? p.avatar : avatarFallback(p.name);
+    const isYou = currentUserName && p.name && p.name.toLowerCase() === currentUserName.toLowerCase();
+    return `
+      <div class="lb-row">
+        <div>#${rank}</div>
+        <div class="lb-player">
+          <img src="${avatarSrc}" alt="${escapeHtml(p.name)}">
+          <div>
+            <div>${escapeHtml(p.name)}${isYou ? '<span class="lb-you">You</span>' : ''}</div>
+            <div style="color:#8191ab;font-size:10px;">Rank #${rank}</div>
+          </div>
         </div>
-      `;
-    }).join('');
-    return `<div class="lb-mode"><div class="lb-mode-title">${escapeHtml(mode)}</div>${rows}</div>`;
+        <div class="lb-level-num">Lv. ${p.level}</div>
+        <div class="lb-score-num">${p.score}</div>
+      </div>
+    `;
   }).join('');
-  leaderboardListEl.innerHTML = sections || '<div class="lb-empty">No scores yet. Play a run to appear here.</div>';
 }
 
 function persistCurrentRun() {
@@ -3405,6 +3537,12 @@ if (menuLeaderboardBtnEl) menuLeaderboardBtnEl.addEventListener('click', async (
     await initSupabase();
     await pullLeaderboardFromSupabase();
   });
+  leaderboardActiveMode = leaderboardActiveMode || 'Normal';
+  if (leaderboardTabsEl) {
+    leaderboardTabsEl.querySelectorAll('.lb-tab').forEach(t => {
+      t.classList.toggle('active', t.getAttribute('data-mode') === leaderboardActiveMode);
+    });
+  }
   renderLeaderboard();
   showScreen('leaderboard-screen');
 });
@@ -3418,6 +3556,17 @@ if (menuSignoutBtnEl) menuSignoutBtnEl.addEventListener('click', () => {
 if (leaderboardBackBtnEl) leaderboardBackBtnEl.addEventListener('click', () => {
   showScreen('menu-screen');
 });
+if (leaderboardTabsEl) {
+  leaderboardTabsEl.addEventListener('click', e => {
+    const btn = e.target.closest('.lb-tab');
+    if (!btn) return;
+    const mode = btn.getAttribute('data-mode');
+    if (!mode) return;
+    leaderboardActiveMode = mode;
+    leaderboardTabsEl.querySelectorAll('.lb-tab').forEach(t => t.classList.toggle('active', t === btn));
+    renderLeaderboard();
+  });
+}
 if (achievementsTopBackBtnEl) achievementsTopBackBtnEl.addEventListener('click', () => {
   showScreen('menu-screen');
 });
