@@ -522,6 +522,61 @@ html,body{
   width:78px;height:78px;border-radius:12px;
   background:#111;object-fit:cover;border:1px solid #2f3a4f;
 }
+
+/* ══ AUTH (SIGN IN / SIGN UP) ══ */
+.auth-screen{
+  background:#0f1115;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+.auth-bg{
+  position:fixed;inset:0;z-index:0;
+  background:radial-gradient(circle at 50% 50%, #1a1c23 0%, #0f1115 100%);
+}
+.auth-card{
+  position:relative;z-index:1;
+  width:100%;max-width:440px;
+  background:rgba(26,28,35,0.6);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:32px;
+  padding:26px 24px;
+  backdrop-filter:blur(16px);
+  box-shadow:0 24px 60px rgba(0,0,0,0.5);
+}
+.auth-title{
+  font-family:'Cabinet Grotesk',sans-serif;
+  font-size:26px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;
+}
+.auth-sub{color:#8c98ad;font-size:12px}
+.auth-field{
+  display:flex;flex-direction:column;gap:6px;margin-top:14px;
+}
+.auth-label{
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8c98ad;
+}
+.auth-input{
+  background:rgba(15,17,21,0.8);
+  border:1px solid rgba(255,255,255,0.06);
+  color:#fff;border-radius:16px;
+  padding:14px 14px 14px 44px;font-size:13px;
+}
+.auth-input:focus{outline:none;border-color:rgba(255,255,255,0.2);background:rgba(15,17,21,1)}
+.auth-icon{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#5b667a;font-size:18px;
+}
+.auth-primary{
+  width:100%;margin-top:18px;
+  background:#fff;color:#000;
+  border:none;border-radius:16px;padding:14px;
+  font-family:'Cabinet Grotesk',sans-serif;
+  letter-spacing:1px;text-transform:uppercase;font-size:12px;
+}
+.auth-secondary{
+  width:100%;margin-top:10px;
+  background:transparent;color:#8c98ad;border:1px solid rgba(255,255,255,0.08);
+  border-radius:16px;padding:12px;font-size:10px;letter-spacing:2px;text-transform:uppercase;
+}
 #leaderboard-list{
   width:100%;max-width:520px;display:flex;flex-direction:column;gap:8px;
 }
@@ -1042,35 +1097,59 @@ html,body{
   </main>
 </div>
 
-<div id="signin-screen" class="screen">
-  <div class="card">
-    <h2 style="font-family:'Orbitron',monospace;letter-spacing:2px;font-size:16px;margin-bottom:12px;">SIGN IN</h2>
-    <div class="field">
-      <label for="signin-name-input">X Username</label>
-      <input id="signin-name-input" maxlength="24" placeholder="X Username" />
+<div id="signin-screen" class="screen auth-screen">
+  <div class="auth-bg"></div>
+  <div class="auth-card">
+    <div style="text-align:center;margin-bottom:18px;">
+      <div class="auth-title">Sign In</div>
+      <div class="auth-sub">Access your account to start painting.</div>
     </div>
-    <div class="field">
-      <label for="signin-pin-input">PIN (4 digits)</label>
-      <input id="signin-pin-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" />
+
+    <div class="auth-field">
+      <label class="auth-label" for="signin-name-input">X Username</label>
+      <div style="position:relative;">
+        <span class="auth-icon">👤</span>
+        <input id="signin-name-input" class="auth-input" maxlength="24" placeholder="Enter username" />
+      </div>
     </div>
-    <button class="btn" id="signin-btn" style="margin-top:14px;width:100%;">Sign In</button>
-    <button class="btn btn-ghost" id="go-signup-btn" style="margin-top:10px;width:100%;">Create Account</button>
+    <div class="auth-field">
+      <label class="auth-label" for="signin-pin-input">PIN (4 digits)</label>
+      <div style="position:relative;">
+        <span class="auth-icon">🔒</span>
+        <input id="signin-pin-input" class="auth-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" />
+      </div>
+    </div>
+
+    <button class="auth-primary" id="signin-btn">Sign In</button>
+    <button class="auth-secondary" id="go-signup-btn">Create Account</button>
   </div>
 </div>
 
-<div id="signup-screen" class="screen">
-  <div class="card">
-    <h2 style="font-family:'Orbitron',monospace;letter-spacing:2px;font-size:16px;margin-bottom:12px;">SIGN UP</h2>
-    <div class="field">
-      <label for="signup-name-input">X Username</label>
-      <input id="signup-name-input" maxlength="24" placeholder="X Username" />
+<div id="signup-screen" class="screen auth-screen">
+  <div class="auth-bg"></div>
+  <div class="auth-card">
+    <div style="text-align:center;margin-bottom:18px;">
+      <div class="auth-title">Sign Up</div>
+      <div class="auth-sub">Create your account to start painting.</div>
     </div>
-    <div class="field">
-      <label for="signup-pin-input">PIN (4 digits)</label>
-      <input id="signup-pin-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" />
+
+    <div class="auth-field">
+      <label class="auth-label" for="signup-name-input">X Username</label>
+      <div style="position:relative;">
+        <span class="auth-icon">👤</span>
+        <input id="signup-name-input" class="auth-input" maxlength="24" placeholder="Enter username" />
+      </div>
     </div>
-    <button class="btn" id="signup-btn" style="margin-top:14px;width:100%;">Create Account</button>
-    <button class="btn btn-ghost" id="go-signin-btn" style="margin-top:10px;width:100%;">Back to Sign In</button>
+    <div class="auth-field">
+      <label class="auth-label" for="signup-pin-input">PIN (4 digits)</label>
+      <div style="position:relative;">
+        <span class="auth-icon">🔒</span>
+        <input id="signup-pin-input" class="auth-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" />
+      </div>
+    </div>
+
+    <button class="auth-primary" id="signup-btn">Create Account</button>
+    <button class="auth-secondary" id="go-signin-btn">Back to Sign In</button>
   </div>
 </div>
 
