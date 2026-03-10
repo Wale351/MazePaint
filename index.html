@@ -881,60 +881,18 @@ html,body{
 </div>
 
 <div id="signup-screen" class="screen">
-  <div class="auth-shell">
-    <div class="auth-left gradient-mesh">
-      <div class="maze-pattern" style="position:absolute;inset:0;opacity:0.3;"></div>
-      <div style="position:relative;z-index:1;text-align:center;">
-        <h1 class="tanker-font" style="font-size:84px;letter-spacing:0.1em;line-height:0.95;">MAZE PAINT</h1>
-        <p style="margin-top:14px;color:#00d4ff80;letter-spacing:0.3em;font-size:12px;">CREATE YOUR PATH</p>
-        <div style="margin-top:36px;width:100%;max-width:520px;background:#11141d;border:1px solid rgba(255,255,255,0.06);border-radius:28px;padding:14px;">
-          <div style="height:220px;border-radius:20px;background:#1a1f2e;position:relative;overflow:hidden;">
-            <div class="maze-pattern" style="position:absolute;inset:0;opacity:0.25;"></div>
-            <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:56px;height:56px;background:#fff;border-radius:14px;display:flex;align-items:center;justify-content:center;">
-              <iconify-icon icon="lucide:user-plus" style="color:#0a0f1a;font-size:24px;"></iconify-icon>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div class="card">
+    <h2 style="font-family:'Orbitron',monospace;letter-spacing:2px;font-size:16px;margin-bottom:12px;">SIGN UP</h2>
+    <div class="field">
+      <label for="signup-name-input">X Username</label>
+      <input id="signup-name-input" maxlength="24" placeholder="X Username" />
     </div>
-    <div class="auth-right">
-      <div class="auth-card">
-        <div class="md:hidden" style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
-          <div style="width:40px;height:40px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;">
-            <iconify-icon icon="lucide:user-plus" style="color:#0a0f1a;font-size:20px;"></iconify-icon>
-          </div>
-          <span class="tanker-font" style="font-size:28px;letter-spacing:0.1em;">MAZE PAINT</span>
-        </div>
-        <header style="margin-bottom:18px;">
-          <h2 class="auth-heading">Create Account</h2>
-          <p class="auth-sub">Choose your X username and PIN.</p>
-        </header>
-        <form>
-          <div class="auth-field" style="margin-bottom:16px;">
-            <label for="signup-name-input">X Username</label>
-            <div style="position:relative;margin-top:8px;">
-              <span class="auth-icon"><iconify-icon icon="lucide:user"></iconify-icon></span>
-              <input id="signup-name-input" maxlength="24" class="auth-input" placeholder="X Username" />
-            </div>
-          </div>
-          <div class="auth-field" style="margin-bottom:20px;">
-            <label for="signup-pin-input">PIN (4 digits)</label>
-            <div style="position:relative;margin-top:8px;">
-              <span class="auth-icon"><iconify-icon icon="lucide:lock"></iconify-icon></span>
-              <input id="signup-pin-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" class="auth-input" placeholder="••••" />
-            </div>
-          </div>
-          <button type="submit" class="auth-btn" id="signup-btn">
-            <span>Create Account</span>
-            <iconify-icon icon="lucide:arrow-right"></iconify-icon>
-          </button>
-        </form>
-        <footer style="text-align:center;margin-top:16px;font-size:12px;letter-spacing:0.12em;color:#9aa4b5;">
-          ALREADY HAVE AN ACCOUNT?
-          <a href="#" id="go-signin-btn" class="auth-link">SIGN IN</a>
-        </footer>
-      </div>
+    <div class="field">
+      <label for="signup-pin-input">PIN (4 digits)</label>
+      <input id="signup-pin-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" />
     </div>
+    <button class="btn" id="signup-btn" style="margin-top:14px;width:100%;">Create Account</button>
+    <button class="btn btn-ghost" id="go-signin-btn" style="margin-top:10px;width:100%;">Back to Sign In</button>
   </div>
 </div>
 
@@ -986,57 +944,18 @@ html,body{
 </div>
 
 <div id="onboarding-screen" class="screen">
-  <div class="auth-shell">
-    <div class="auth-left gradient-mesh">
-      <div class="maze-pattern" style="position:absolute;inset:0;opacity:0.3;"></div>
-      <div style="position:relative;z-index:1;text-align:center;">
-        <h1 class="tanker-font" style="font-size:84px;letter-spacing:0.1em;line-height:0.95;">MAZE PAINT</h1>
-        <p style="margin-top:14px;color:#00d4ff80;letter-spacing:0.3em;font-size:12px;">FINALIZE PROFILE</p>
-        <div style="margin-top:36px;width:100%;max-width:520px;background:#11141d;border:1px solid rgba(255,255,255,0.06);border-radius:28px;padding:14px;">
-          <div style="height:220px;border-radius:20px;background:#1a1f2e;position:relative;overflow:hidden;">
-            <div class="maze-pattern" style="position:absolute;inset:0;opacity:0.25;"></div>
-            <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:56px;height:56px;background:#fff;border-radius:14px;display:flex;align-items:center;justify-content:center;">
-              <iconify-icon icon="lucide:shield-check" style="color:#0a0f1a;font-size:24px;"></iconify-icon>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div class="card">
+    <h2 id="profile-heading" style="font-family:'Orbitron',monospace;letter-spacing:2px;font-size:16px;margin-bottom:12px;">PLAYER SETUP</h2>
+    <div class="field">
+      <label for="player-name-input">X Username</label>
+      <input id="player-name-input" maxlength="24" placeholder="X Username" />
     </div>
-    <div class="auth-right">
-      <div class="auth-card">
-        <div class="md:hidden" style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
-          <div style="width:40px;height:40px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;">
-            <iconify-icon icon="lucide:shield-check" style="color:#0a0f1a;font-size:20px;"></iconify-icon>
-          </div>
-          <span class="tanker-font" style="font-size:28px;letter-spacing:0.1em;">MAZE PAINT</span>
-        </div>
-        <header style="margin-bottom:18px;">
-          <h2 id="profile-heading" class="auth-heading">Player Setup</h2>
-          <p class="auth-sub">Confirm your X username and PIN.</p>
-        </header>
-        <form>
-          <div class="auth-field" style="margin-bottom:16px;">
-            <label for="player-name-input">X Username</label>
-            <div style="position:relative;margin-top:8px;">
-              <span class="auth-icon"><iconify-icon icon="lucide:user"></iconify-icon></span>
-              <input id="player-name-input" maxlength="24" class="auth-input" placeholder="X Username" />
-            </div>
-          </div>
-          <div class="auth-field" style="margin-bottom:20px;">
-            <label for="player-pin-input">PIN (4 digits)</label>
-            <div style="position:relative;margin-top:8px;">
-              <span class="auth-icon"><iconify-icon icon="lucide:lock"></iconify-icon></span>
-              <input id="player-pin-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" class="auth-input" placeholder="••••" />
-            </div>
-          </div>
-          <button type="submit" class="auth-btn" id="save-player-btn">
-            <span>Save Profile</span>
-            <iconify-icon icon="lucide:check"></iconify-icon>
-          </button>
-          <button class="btn btn-ghost" id="profile-back-btn" style="margin-top:12px;width:100%;">Back</button>
-        </form>
-      </div>
+    <div class="field">
+      <label for="player-pin-input">PIN (4 digits)</label>
+      <input id="player-pin-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" />
     </div>
+    <button class="btn" id="save-player-btn" style="margin-top:14px;width:100%;">Save Profile</button>
+    <button class="btn btn-ghost" id="profile-back-btn" style="margin-top:10px;width:100%;">Back</button>
   </div>
 </div>
 
