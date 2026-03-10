@@ -1054,6 +1054,7 @@ let supabaseClient = null;
 let supabaseEnabled = false;
 let supabaseInitTried = false;
 let supabaseRuntimeConfig = null;
+let sharedLevelsLoaded = false;
 let timerRemainingMs = 0;
 let timerHandle = 0;
 let timerWaves = 0;
@@ -1731,6 +1732,83 @@ async function pullUserDataFromSupabase() {
   } catch (_) {}
 }
 
+function normalizeSharedLevelRow(row) {
+  if (!row || !Array.isArray(row.g)) return null;
+  const rows = row.rows | 0;
+  const cols = row.cols | 0;
+  const sr = row.sr | 0;
+  const sc = row.sc | 0;
+  if (rows < 1 || cols < 1 || row.g.length !== rows * cols) return null;
+  const g = new Int8Array(row.g);
+  if (sr < 0 || sc < 0 || sr >= rows || sc >= cols) return null;
+  return { g, rows, cols, sr, sc, wk: walkCountRect(g, rows, cols) };
+}
+
+async function pushSharedLevel(mode, level, payload, isDaily) {
+  if (!supabaseEnabled || !supabaseClient || !payload) return;
+  try {
+    await supabaseClient
+      .from('maze_shared_levels')
+      .upsert({
+        mode: String(mode || ''),
+        level: Number(level) || 0,
+        rows: payload.rows,
+        cols: payload.cols,
+        sr: payload.sr,
+        sc: payload.sc,
+        wk: payload.wk,
+        g: Array.from(payload.g),
+        is_daily: !!isDaily,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'mode,level,is_daily' });
+  } catch (_) {}
+}
+
+async function pullSharedLevels() {
+  if (!supabaseEnabled || !supabaseClient) return;
+  try {
+    const { data, error } = await supabaseClient
+      .from('maze_shared_levels')
+      .select('mode,level,rows,cols,sr,sc,wk,g,is_daily');
+    if (error || !Array.isArray(data)) return;
+    let mutated = false;
+    let pool = loadDailyCustomPool();
+    const poolSigs = new Set(pool.map(l => hashLevelSource(l.g, l.rows, l.cols, l.sr, l.sc)));
+    for (const row of data) {
+      const isDaily = !!row.is_daily || row.mode === 'Daily';
+      const lvl = normalizeSharedLevelRow(row);
+      if (!lvl) continue;
+      if (isDaily) {
+        const sig = hashLevelSource(lvl.g, lvl.rows, lvl.cols, lvl.sr, lvl.sc);
+        if (!poolSigs.has(sig)) {
+          poolSigs.add(sig);
+          pool.push(lvl);
+          mutated = true;
+        }
+        continue;
+      }
+      const mode = row.mode || 'Normal';
+      const key = levelKey(mode, row.level || 0);
+      if (!savedBuildLevels[key]) {
+        savedBuildLevels[key] = {
+          rows: lvl.rows,
+          cols: lvl.cols,
+          sr: lvl.sr,
+          sc: lvl.sc,
+          wk: lvl.wk,
+          g: Array.from(lvl.g)
+        };
+        mutated = true;
+      }
+    }
+    if (mutated) {
+      persistSavedBuildLevels();
+      saveDailyCustomPool(pool);
+    }
+    sharedLevelsLoaded = true;
+  } catch (_) {}
+}
+
 async function pushLeaderboardToSupabase(item) {
   if (!supabaseEnabled || !supabaseClient || !item) return;
   try {
@@ -2110,6 +2188,7 @@ function addDailyCustomLevel(payload) {
   if (!exists) pool.push(payload);
   saveDailyCustomPool(pool);
   void pushUserDataToSupabase();
+  void pushSharedLevel('Daily', 0, payload, true);
   return pool.length;
 }
 
@@ -2377,6 +2456,7 @@ function saveBuiltLevel(mode, level, payload) {
   };
   persistSavedBuildLevels();
   void pushUserDataToSupabase();
+  void pushSharedLevel(mode, level, payload, false);
 }
 
 function getSavedBuiltLevel(mode, level) {
@@ -4674,6 +4754,7 @@ if (signupBtnEl) signupBtnEl.addEventListener('click', async () => {
     refreshProfileEditingState();
     renderAchievements();
     setSlider(Math.max(0, DIFF_MODES.indexOf(difficulty)), false);
+    await pullSharedLevels();
     onboardingNameEl.value = usersDb[uname].name;
     onboardingNameEl.readOnly = false;
     if (onboardingPinEl) {
@@ -4723,6 +4804,7 @@ if (signinBtnEl) signinBtnEl.addEventListener('click', async () => {
     setSlider(Math.max(0, DIFF_MODES.indexOf(difficulty)), false);
     await upsertUserSupabase(uname, rec.pinHash || pinHash, rec.name, '', !!rec.onboarded);
     await pullUserDataFromSupabase();
+    await pullSharedLevels();
     refreshContinueButton();
     if (!rec.onboarded) {
       onboardingNameEl.value = rec.name;
@@ -4815,6 +4897,7 @@ void initSupabase().then(async ok => {
   if (currentUserName) {
     await syncProfileToSupabase();
     await pullUserDataFromSupabase();
+    await pullSharedLevels();
     refreshContinueButton();
     await pullLeaderboardFromSupabase();
   }
