@@ -1284,6 +1284,12 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
   helpBtn.style.display = id === 'menu-screen' ? 'flex' : 'none';
   if (menuDropdownEl) menuDropdownEl.classList.remove('open');
+  if (id === 'menu-screen') {
+    void initSupabase().then(async ok => {
+      if (!ok) return;
+      await pullSharedLevels();
+    });
+  }
   if (profileHeadingEl && profileBackBtnEl) {
     const hasProfile = !!playerProfile;
     const onboarded = !!(currentUserName && usersDb[currentUserName] && usersDb[currentUserName].onboarded);
