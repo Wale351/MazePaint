@@ -692,6 +692,51 @@ html,body{
 }
 .lb-score-num{font-family:'Cabinet Grotesk',sans-serif;font-size:16px;text-align:right;}
 .lb-level-num{color:#9aa7bf;text-align:right;font-size:12px;}
+
+/* ══ RESPONSIVE POLISH ══ */
+@media (max-width: 820px){
+  .menu-title{font-size:clamp(28px,10vw,44px)}
+  .menu-tagline{margin-bottom:28px}
+  .slider-section{margin-bottom:28px}
+  .game-header{padding:14px 14px 8px}
+  .progress-wrap{padding:4px 14px 10px}
+  #board-container{padding:6px 10px}
+  .lb-shell,.profile-shell,.ach-shell{padding:16px 14px 24px}
+  .lb-title,.ach-title{font-size:30px}
+  .profile-name{font-size:26px}
+  .stat-value{font-size:22px}
+  .auth-card{padding:22px 18px;border-radius:26px}
+}
+
+@media (max-width: 600px){
+  .menu-eyebrow{letter-spacing:2px}
+  .menu-title{letter-spacing:1px}
+  .slider-label-row{font-size:9px}
+  .btn{padding:12px 28px;font-size:13px}
+  .game-title-small{font-size:11px}
+  .level-info{gap:0}
+  .level-number{font-size:12px}
+  .level-diff{font-size:9px}
+  .score-chip,.timer-chip{font-size:10px}
+  .lb-tabs{gap:12px;overflow-x:auto}
+  .lb-list-header,.lb-row{grid-template-columns:52px 1fr 90px}
+  .lb-score-num{font-size:14px}
+  .lb-player img,.lb-avatar-fallback{width:32px;height:32px}
+  .profile-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .profile-avatar{width:120px;height:120px}
+  .auth-title{font-size:22px}
+  .auth-sub{font-size:11px}
+  .ach-grid{grid-template-columns:1fr}
+}
+
+@media (max-width: 420px){
+  .lb-list-header,.lb-row{grid-template-columns:44px 1fr 80px}
+  .lb-row{padding:10px 14px}
+  .lb-list-header{padding:10px 14px}
+  .auth-card{padding:18px 14px}
+  .profile-card{padding:14px}
+}
 .ach-screen{
   justify-content:flex-start;
   align-items:center;
