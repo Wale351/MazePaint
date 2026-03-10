@@ -8,7 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-@import url('https://api.fontshare.com/v2/css?f[]=tanker@400&f[]=cabinet-grotesk@800&f[]=satoshi@400,500,700,900&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=tanker@400&f[]=satoshi@400,500,700,900&display=swap');
 /* ── RESET ── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
@@ -72,8 +72,8 @@ html,body{
   filter:blur(0.5px);
 }
 .font-display{
-  font-family:'Cabinet Grotesk',sans-serif;
-  letter-spacing:0.08em;
+  font-family:'Tanker',sans-serif;
+  letter-spacing:0.1em;
 }
 .menu-profile{
   position:fixed;top:22px;right:24px;z-index:80;
@@ -112,7 +112,7 @@ html,body{
 }
 .menu-title{
   font-size:clamp(48px,10vw,92px);
-  font-weight:800;line-height:0.92;
+  font-weight:400;line-height:0.92;
   color:var(--white);
   text-align:center;margin-bottom:8px;
   text-shadow:0 14px 40px rgba(0,0,0,0.45);
@@ -522,79 +522,6 @@ html,body{
   width:78px;height:78px;border-radius:12px;
   background:#111;object-fit:cover;border:1px solid #2f3a4f;
 }
-
-/* Auth redesign */
-.auth-shell{
-  width:100%;height:100%;
-  display:flex;flex-direction:column;
-  background:#1a1f2e;
-}
-.auth-left{
-  display:none;
-}
-.auth-right{
-  flex:1;display:flex;align-items:center;justify-content:center;
-  padding:24px;
-}
-.auth-card{
-  width:100%;max-width:480px;
-}
-.auth-heading{
-  font-family:'Cabinet Grotesk',sans-serif;
-  font-size:28px;letter-spacing:0.02em;text-transform:uppercase;
-}
-.auth-sub{
-  font-size:12px;letter-spacing:0.12em;color:#9aa4b5;text-transform:uppercase;
-}
-.auth-field label{
-  font-size:11px;letter-spacing:0.16em;color:#9aa4b5;text-transform:uppercase;font-weight:700;
-}
-.auth-input{
-  width:100%;
-  background:#11141d;border:1px solid #2a303f;color:#fff;
-  border-radius:14px;padding:14px 16px 14px 44px;
-  font-size:14px;
-}
-.auth-input:focus{outline:none;border-color:#00d4ff;box-shadow:0 0 0 4px rgba(0,212,255,0.1)}
-.auth-icon{
-  position:absolute;left:16px;top:50%;transform:translateY(-50%);
-  color:#6b7280;font-size:18px;
-}
-.auth-btn{
-  width:100%;background:#fff;color:#0a0f1a;font-weight:800;
-  padding:16px;border-radius:14px;letter-spacing:0.2em;text-transform:uppercase;
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  transition:transform 0.2s ease, background 0.2s ease;
-}
-.auth-btn:hover{transform:translateY(-1px);background:#e5e7eb}
-.auth-link{
-  color:#fff;font-weight:700;text-decoration:none;position:relative;
-}
-.auth-link::after{
-  content:'';position:absolute;left:0;right:0;bottom:-3px;height:1px;background:#00d4ff;
-  transform:scaleX(0);transform-origin:left;transition:transform 0.2s ease;
-}
-.auth-link:hover::after{transform:scaleX(1)}
-.maze-pattern{
-  background-image:radial-gradient(circle at 2px 2px, #2a303f 1.5px, transparent 0);
-  background-size:40px 40px;
-}
-.gradient-mesh{
-  background-color:#1a1f2e;
-  background-image:
-    radial-gradient(at 0% 0%, hsla(222,28%,15%,1) 0, transparent 50%),
-    radial-gradient(at 50% 0%, hsla(190,100%,50%,0.05) 0, transparent 50%),
-    radial-gradient(at 100% 0%, hsla(222,28%,10%,1) 0, transparent 50%);
-}
-@media (min-width: 900px){
-  .auth-shell{flex-direction:row;}
-  .auth-left{
-    display:flex;flex:1;align-items:center;justify-content:center;
-    padding:48px;border-right:1px solid rgba(255,255,255,0.06);
-    position:relative;overflow:hidden;
-  }
-  .auth-right{flex:1;padding:48px;}
-}
 #leaderboard-list{
   width:100%;max-width:520px;display:flex;flex-direction:column;gap:8px;
 }
@@ -823,60 +750,18 @@ html,body{
 </div>
 
 <div id="signin-screen" class="screen">
-  <div class="auth-shell">
-    <div class="auth-left gradient-mesh">
-      <div class="maze-pattern" style="position:absolute;inset:0;opacity:0.3;"></div>
-      <div style="position:relative;z-index:1;text-align:center;">
-        <h1 class="tanker-font" style="font-size:84px;letter-spacing:0.1em;line-height:0.95;">MAZE PAINT</h1>
-        <p style="margin-top:14px;color:#00d4ff80;letter-spacing:0.3em;font-size:12px;">FILL EVERY TILE. MASTER THE MAZE</p>
-        <div style="margin-top:36px;width:100%;max-width:520px;background:#11141d;border:1px solid rgba(255,255,255,0.06);border-radius:28px;padding:14px;">
-          <div style="height:220px;border-radius:20px;background:#1a1f2e;position:relative;overflow:hidden;">
-            <div class="maze-pattern" style="position:absolute;inset:0;opacity:0.25;"></div>
-            <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:56px;height:56px;background:#fff;border-radius:14px;display:flex;align-items:center;justify-content:center;">
-              <iconify-icon icon="lucide:brush" style="color:#0a0f1a;font-size:24px;"></iconify-icon>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div class="card">
+    <h2 style="font-family:'Orbitron',monospace;letter-spacing:2px;font-size:16px;margin-bottom:12px;">SIGN IN</h2>
+    <div class="field">
+      <label for="signin-name-input">X Username</label>
+      <input id="signin-name-input" maxlength="24" placeholder="X Username" />
     </div>
-    <div class="auth-right">
-      <div class="auth-card">
-        <div class="md:hidden" style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
-          <div style="width:40px;height:40px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;">
-            <iconify-icon icon="lucide:brush" style="color:#0a0f1a;font-size:20px;"></iconify-icon>
-          </div>
-          <span class="tanker-font" style="font-size:28px;letter-spacing:0.1em;">MAZE PAINT</span>
-        </div>
-        <header style="margin-bottom:18px;">
-          <h2 class="auth-heading">Sign In</h2>
-          <p class="auth-sub">Please enter your details to continue.</p>
-        </header>
-        <form>
-          <div class="auth-field" style="margin-bottom:16px;">
-            <label for="signin-name-input">X Username</label>
-            <div style="position:relative;margin-top:8px;">
-              <span class="auth-icon"><iconify-icon icon="lucide:user"></iconify-icon></span>
-              <input id="signin-name-input" maxlength="24" class="auth-input" placeholder="X Username" />
-            </div>
-          </div>
-          <div class="auth-field" style="margin-bottom:20px;">
-            <label for="signin-pin-input">PIN (4 digits)</label>
-            <div style="position:relative;margin-top:8px;">
-              <span class="auth-icon"><iconify-icon icon="lucide:lock"></iconify-icon></span>
-              <input id="signin-pin-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" class="auth-input" placeholder="••••" />
-            </div>
-          </div>
-          <button type="submit" class="auth-btn" id="signin-btn">
-            <span>Start Playing</span>
-            <iconify-icon icon="lucide:play"></iconify-icon>
-          </button>
-        </form>
-        <footer style="text-align:center;margin-top:16px;font-size:12px;letter-spacing:0.12em;color:#9aa4b5;">
-          DON'T HAVE AN ACCOUNT?
-          <a href="#" id="go-signup-btn" class="auth-link">CREATE ACCOUNT</a>
-        </footer>
-      </div>
+    <div class="field">
+      <label for="signin-pin-input">PIN (4 digits)</label>
+      <input id="signin-pin-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" />
     </div>
+    <button class="btn" id="signin-btn" style="margin-top:14px;width:100%;">Sign In</button>
+    <button class="btn btn-ghost" id="go-signup-btn" style="margin-top:10px;width:100%;">Create Account</button>
   </div>
 </div>
 
