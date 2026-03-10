@@ -563,7 +563,10 @@ html,body{
 }
 .auth-input:focus{outline:none;border-color:rgba(255,255,255,0.2);background:rgba(15,17,21,1)}
 .auth-icon{
-  position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#5b667a;font-size:18px;
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  width:18px;height:18px;border-radius:4px;
+  border:1px solid rgba(255,255,255,0.15);color:#8c98ad;
+  display:flex;align-items:center;justify-content:center;font-size:10px;
 }
 .auth-primary{
   width:100%;margin-top:18px;
@@ -861,32 +864,10 @@ html,body{
   font-family:'Cabinet Grotesk',sans-serif;
   font-size:26px;letter-spacing:0.5px;
 }
-.badge-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
-.badge{
-  aspect-ratio:1/1;border-radius:16px;
-  background:#1a1c23;border:1px solid rgba(255,255,255,0.06);
-  display:flex;align-items:center;justify-content:center;
-  color:#7ee787;font-size:18px;
-}
-.badge.locked{color:#5a667d;filter:grayscale(1);opacity:0.5}
 .profile-section-title{
   font-family:'Cabinet Grotesk',sans-serif;
   font-size:16px;margin-bottom:10px;
 }
-.profile-activity{
-  display:flex;flex-direction:column;gap:10px;
-}
-.activity-item{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:14px;border-radius:16px;
-  background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);
-}
-.activity-left{display:flex;align-items:center;gap:12px}
-.activity-icon{
-  width:44px;height:44px;border-radius:12px;background:#1b2230;
-  display:flex;align-items:center;justify-content:center;color:#8ad5ff;
-}
-.activity-meta{font-size:11px;color:#98a6bf}
 /* ══ MOTIVATIONAL BANNER ══ */
 #motive-banner{
   position:fixed;
@@ -1108,14 +1089,14 @@ html,body{
     <div class="auth-field">
       <label class="auth-label" for="signin-name-input">X Username</label>
       <div style="position:relative;">
-        <span class="auth-icon">👤</span>
+        <span class="auth-icon">U</span>
         <input id="signin-name-input" class="auth-input" maxlength="24" placeholder="Enter username" />
       </div>
     </div>
     <div class="auth-field">
       <label class="auth-label" for="signin-pin-input">PIN (4 digits)</label>
       <div style="position:relative;">
-        <span class="auth-icon">🔒</span>
+        <span class="auth-icon">P</span>
         <input id="signin-pin-input" class="auth-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" />
       </div>
     </div>
@@ -1136,14 +1117,14 @@ html,body{
     <div class="auth-field">
       <label class="auth-label" for="signup-name-input">X Username</label>
       <div style="position:relative;">
-        <span class="auth-icon">👤</span>
+        <span class="auth-icon">U</span>
         <input id="signup-name-input" class="auth-input" maxlength="24" placeholder="Enter username" />
       </div>
     </div>
     <div class="auth-field">
       <label class="auth-label" for="signup-pin-input">PIN (4 digits)</label>
       <div style="position:relative;">
-        <span class="auth-icon">🔒</span>
+        <span class="auth-icon">P</span>
         <input id="signup-pin-input" class="auth-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" />
       </div>
     </div>
@@ -1226,16 +1207,6 @@ html,body{
             <button class="profile-btn danger" id="reset-scores-btn">Reset High Scores</button>
           </div>
         </div>
-
-        <div class="profile-card">
-          <div class="profile-section-title">Achievements</div>
-          <div class="badge-grid">
-            <div class="badge">★</div>
-            <div class="badge">◆</div>
-            <div class="badge locked">◇</div>
-            <div class="badge locked">◇</div>
-          </div>
-        </div>
       </section>
 
       <section class="profile-right">
@@ -1261,21 +1232,6 @@ html,body{
           </div>
         </div>
 
-        <div>
-          <div class="profile-section-title">Recent Activity</div>
-          <div class="profile-activity">
-            <div class="activity-item">
-              <div class="activity-left">
-                <div class="activity-icon">▶</div>
-                <div>
-                  <div style="font-size:13px;">Play a game to start tracking activity</div>
-                  <div class="activity-meta">Your recent sessions will appear here.</div>
-                </div>
-              </div>
-              <div style="color:#6c7b96;font-size:12px;">—</div>
-            </div>
-          </div>
-        </div>
       </section>
     </div>
   </div>
@@ -2863,10 +2819,10 @@ function recordModePlayed(modeKey) {
 function updateProfileStatsUI() {
   if (!profileScoreNormalEl) return;
   initStatsDefaults();
-  const n = (stats.modeClears.normal || 0) * 5;
-  const h = (stats.modeClears.hard || 0) * 7;
-  const e = (stats.modeClears.extra || 0) * 10;
-  const t = (stats.modeClears.timer || 0) * 3;
+  const n = modeScore('normal');
+  const h = modeScore('hard');
+  const e = modeScore('extra');
+  const t = modeScore('timer');
   profileScoreNormalEl.textContent = String(n);
   profileScoreHardEl.textContent = String(h);
   profileScoreExtraEl.textContent = String(e);
@@ -3063,6 +3019,7 @@ function setLeaderboardScoreForMode(modeKey, score) {
   leaderboard = leaderboard.slice(0, LEADERBOARD_MAX);
   persistLeaderboard();
   renderLeaderboard();
+  updateProfileStatsUI();
   void pushLeaderboardToSupabase(item);
   void pullLeaderboardFromSupabase();
 }
