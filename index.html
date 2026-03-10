@@ -503,15 +503,23 @@ html,body{
   font-size:11px;letter-spacing:1px;color:#b7c4de;margin-bottom:8px;
 }
 .lb-item{
-  display:flex;align-items:center;gap:10px;
+  display:grid;
+  grid-template-columns:28px 34px 1fr auto;
+  align-items:center;
+  gap:10px;
   background:#1a1f2b;border:1px solid #2b3446;border-radius:14px;padding:10px 12px;
   transition:transform 0.2s ease,border-color 0.2s ease,background 0.2s ease;
 }
 .lb-item:hover{transform:translateY(-1px);border-color:#3a4c68;background:#1e2532}
-.lb-rank{width:20px;color:#9fb0d4;font-size:12px}
+.lb-rank{color:#9fb0d4;font-size:12px;font-weight:600}
 .lb-avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;background:#111}
-.lb-name{font-size:13px;color:#fff;flex:1}
-.lb-meta{font-size:11px;color:#a4b0c9}
+.lb-name{font-size:13px;color:#fff}
+.lb-score{
+  font-family:'Orbitron',monospace;
+  font-size:12px;
+  color:#c6d7ff;
+  letter-spacing:0.5px;
+}
 .ach-list{
   width:100%;max-width:520px;display:flex;flex-direction:column;gap:8px;
 }
@@ -1350,6 +1358,9 @@ function persistUsersDb() {
 
 function setCurrentUser(name) {
   currentUserName = normalizeUserName(name);
+  // Ensure per-user run state doesn't bleed across sessions.
+  runSaveStore = {};
+  savedRun = null;
   try { localStorage.setItem(SESSION_USER_KEY, currentUserName); } catch (_) {}
 }
 
@@ -1362,6 +1373,7 @@ function signOutUser() {
   currentUserName = '';
   playerProfile = null;
   savedRun = null;
+  runSaveStore = {};
   leaderboard = [];
   achievements = {};
   dailyStatus = {};
@@ -1421,10 +1433,10 @@ function loadRunSave() {
   const mode = difficulty;
   try {
     const raw = localStorage.getItem(scopedKey(RUN_SAVE_KEY));
-    if (!raw) return null;
+    if (!raw) { runSaveStore = {}; return null; }
     const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object') return null;
-    // Backward compatibility: old single-run format.
+    if (!parsed || typeof parsed !== 'object') { runSaveStore = {}; return null; }
+    // Backward compatibility: old single-run format (scoped only).
     if (Array.isArray(parsed.grid) && typeof parsed.currentLevel === 'number') {
       runSaveStore = {};
       const mk = parsed.difficulty && DIFF_MODES.includes(parsed.difficulty) ? parsed.difficulty : mode;
@@ -1445,6 +1457,7 @@ function loadRunSave() {
     moveIf('Time', 'Time Mode');
     return runSaveStore[mode] || null;
   } catch (_) {
+    runSaveStore = {};
     return null;
   }
 }
@@ -2105,28 +2118,35 @@ function renderLeaderboard() {
     return;
   }
   const sections = ['Normal','Hard','Extra Hard','Time Mode'].map(mode => {
-    const items = leaderboard
-      .filter(e => {
-        const m = (e.mode || 'Normal');
-        if (mode === 'Time Mode') return m === 'Time Mode' || m === 'Timer';
-        return m === mode;
-      })
-      .sort((a, b) => b.score - a.score || (a.at < b.at ? 1 : -1))
-      .slice(0, 10);
+    const items = leaderboard.filter(e => {
+      const m = (e.mode || 'Normal');
+      if (mode === 'Time Mode') return m === 'Time Mode' || m === 'Timer';
+      return m === mode;
+    });
     if (!items.length) return '';
-    const rows = items.map((e, idx) => {
-      const d = new Date(e.at);
-      const dateLabel = Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString();
+
+    // Accumulate scores per user for cleaner leaderboard.
+    const byUser = new Map();
+    for (const e of items) {
+      const key = (e.name || 'Player').toLowerCase();
+      if (!byUser.has(key)) {
+        byUser.set(key, { name: e.name || 'Player', avatar: e.avatar || '', score: 0 });
+      }
+      byUser.get(key).score += Number(e.score) || 0;
+    }
+    const rowsData = Array.from(byUser.values())
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
+    if (!rowsData.length) return '';
+
+    const rows = rowsData.map((e, idx) => {
       const safeName = escapeHtml(e.name);
       const avatarSrc = (e.avatar && String(e.avatar).trim()) ? e.avatar : avatarFallback(e.name);
       return `
         <div class="lb-item">
           <div class="lb-rank">#${idx + 1}</div>
           <img class="lb-avatar" src="${avatarSrc}" alt="${safeName}">
-          <div class="lb-meta">
-            <div class="lb-name">${safeName}</div>
-            <div class="lb-sub">L${e.level}${dateLabel ? ` • ${dateLabel}` : ''}</div>
-          </div>
+          <div class="lb-name">${safeName}</div>
           <div class="lb-score">${e.score}</div>
         </div>
       `;
