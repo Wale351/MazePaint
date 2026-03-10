@@ -579,6 +579,137 @@ html,body{
   margin-bottom:10px;
 }
 
+/* ══ PROFILE SCREEN ══ */
+@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700&f[]=satoshi@700,500,400&display=swap');
+.profile-screen{
+  justify-content:flex-start;
+  align-items:center;
+  padding:0;
+  overflow:auto;
+  background:#0f1115;
+}
+.profile-shell{
+  width:100%;
+  max-width:1100px;
+  padding:20px 18px 32px;
+}
+.profile-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 0 18px;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  position:sticky;
+  top:0;
+  background:rgba(15,17,21,0.85);
+  backdrop-filter:blur(6px);
+  z-index:5;
+}
+.profile-back{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  color:#97a3b7;
+  font-size:12px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  background:none;border:none;cursor:pointer;
+}
+.profile-back:hover{color:#ffffff}
+.profile-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:22px;
+  padding-top:22px;
+}
+@media (min-width: 980px){
+  .profile-grid{grid-template-columns:320px 1fr; gap:28px;}
+}
+.profile-left{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.profile-card{
+  background:rgba(26,28,35,0.4);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:22px;
+  padding:18px;
+  backdrop-filter:blur(8px);
+}
+.profile-avatar{
+  width:140px;height:140px;border-radius:26px;
+  overflow:hidden;border:2px solid rgba(255,255,255,0.06);
+  background:#1a1c23;position:relative;margin:0 auto 14px;
+}
+.profile-avatar img{width:100%;height:100%;object-fit:cover}
+.profile-name{
+  font-family:'Cabinet Grotesk',sans-serif;
+  font-size:32px;text-transform:uppercase;letter-spacing:1px;
+  text-align:center;margin-bottom:6px;
+}
+.profile-sub{
+  text-align:center;color:#94a3b8;font-size:12px;letter-spacing:1px;
+}
+.profile-actions{
+  display:flex;flex-direction:column;gap:10px;margin-top:16px;
+}
+.profile-btn{
+  width:100%;
+  padding:12px 14px;border-radius:12px;
+  background:#1a1c23;border:1px solid rgba(255,255,255,0.06);
+  color:#e6eeff;font-size:12px;letter-spacing:1px;text-transform:uppercase;
+  cursor:pointer;
+}
+.profile-btn:hover{border-color:rgba(255,255,255,0.12)}
+.profile-btn.danger{color:#ff7b7b;border-color:rgba(255,123,123,0.25)}
+.profile-right{display:flex;flex-direction:column;gap:20px;}
+.profile-input{
+  width:100%;
+  background:#10141d;border:1px solid #2a303f;border-radius:12px;
+  color:#fff;padding:12px 14px;font-size:13px;
+}
+.profile-input:focus{outline:none;border-color:#4b6b99;box-shadow:0 0 0 3px rgba(75,107,153,0.2)}
+.stats-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+}
+@media (min-width: 900px){.stats-grid{grid-template-columns:repeat(4,minmax(0,1fr));}}
+.stat-card{
+  background:#1a1c23;border:1px solid rgba(255,255,255,0.04);
+  border-radius:20px;padding:14px;transition:transform 0.2s ease,border-color 0.2s ease,background 0.2s ease;
+}
+.stat-card:hover{border-color:rgba(255,255,255,0.12);transform:translateY(-2px);background:#21242c}
+.stat-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8ea0bf;margin-bottom:8px}
+.stat-value{
+  font-family:'Cabinet Grotesk',sans-serif;
+  font-size:26px;letter-spacing:0.5px;
+}
+.badge-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+.badge{
+  aspect-ratio:1/1;border-radius:16px;
+  background:#1a1c23;border:1px solid rgba(255,255,255,0.06);
+  display:flex;align-items:center;justify-content:center;
+  color:#7ee787;font-size:18px;
+}
+.badge.locked{color:#5a667d;filter:grayscale(1);opacity:0.5}
+.profile-section-title{
+  font-family:'Cabinet Grotesk',sans-serif;
+  font-size:16px;margin-bottom:10px;
+}
+.profile-activity{
+  display:flex;flex-direction:column;gap:10px;
+}
+.activity-item{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px;border-radius:16px;
+  background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);
+}
+.activity-left{display:flex;align-items:center;gap:12px}
+.activity-icon{
+  width:44px;height:44px;border-radius:12px;background:#1b2230;
+  display:flex;align-items:center;justify-content:center;color:#8ad5ff;
+}
+.activity-meta{font-size:11px;color:#98a6bf}
 /* ══ MOTIVATIONAL BANNER ══ */
 #motive-banner{
   position:fixed;
@@ -863,41 +994,83 @@ html,body{
   </div>
 </div>
 
-<div id="onboarding-screen" class="screen">
-  <div class="card" style="max-width:520px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <h2 id="profile-heading" style="font-family:'Orbitron',monospace;letter-spacing:2px;font-size:16px;">PROFILE</h2>
-      <button class="btn btn-ghost" id="profile-back-btn" style="padding:8px 14px;">Back</button>
+<div id="onboarding-screen" class="screen profile-screen">
+  <div class="profile-shell">
+    <div class="profile-top">
+      <button class="profile-back" id="profile-back-btn" aria-label="Back">
+        ← Back to Lobby
+      </button>
+      <div style="color:#6c7b96;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Profile</div>
     </div>
-    <div class="field">
-      <label for="player-name-input">X Username</label>
-      <input id="player-name-input" maxlength="24" placeholder="X Username" />
-    </div>
-    <div class="profile-stats" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px;">
-      <div class="lb-item" style="grid-template-columns:auto 1fr auto;gap:8px;">
-        <div class="lb-rank">Normal</div>
-        <div class="lb-name" id="profile-score-normal">0</div>
-        <div class="lb-score">pts</div>
-      </div>
-      <div class="lb-item" style="grid-template-columns:auto 1fr auto;gap:8px;">
-        <div class="lb-rank">Hard</div>
-        <div class="lb-name" id="profile-score-hard">0</div>
-        <div class="lb-score">pts</div>
-      </div>
-      <div class="lb-item" style="grid-template-columns:auto 1fr auto;gap:8px;">
-        <div class="lb-rank">Extra</div>
-        <div class="lb-name" id="profile-score-extra">0</div>
-        <div class="lb-score">pts</div>
-      </div>
-      <div class="lb-item" style="grid-template-columns:auto 1fr auto;gap:8px;">
-        <div class="lb-rank">Time</div>
-        <div class="lb-name" id="profile-score-time">0</div>
-        <div class="lb-score">pts</div>
-      </div>
-    </div>
-    <div class="profile-actions" style="display:flex;gap:10px;margin-top:14px;">
-      <button class="btn" id="save-player-btn" style="flex:1;">Save Profile</button>
-      <button class="btn btn-ghost" id="reset-scores-btn" style="flex:1;">Reset Scores</button>
+
+    <div class="profile-grid">
+      <section class="profile-left">
+        <div class="profile-card">
+          <div class="profile-avatar">
+            <img id="profile-avatar-img" alt="Profile avatar" />
+          </div>
+          <h1 id="profile-heading" class="profile-name">Player</h1>
+          <div class="profile-sub">Maze Paint</div>
+          <div style="margin-top:16px;">
+            <label for="player-name-input" style="display:block;color:#94a3b8;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">X Username</label>
+            <input id="player-name-input" class="profile-input" maxlength="24" placeholder="X Username" />
+          </div>
+          <div class="profile-actions">
+            <button class="profile-btn" id="save-player-btn">Save Profile</button>
+            <button class="profile-btn danger" id="reset-scores-btn">Reset High Scores</button>
+          </div>
+        </div>
+
+        <div class="profile-card">
+          <div class="profile-section-title">Achievements</div>
+          <div class="badge-grid">
+            <div class="badge">★</div>
+            <div class="badge">◆</div>
+            <div class="badge locked">◇</div>
+            <div class="badge locked">◇</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="profile-right">
+        <div>
+          <div class="profile-section-title">Performance Stats</div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">Normal</div>
+              <div class="stat-value"><span id="profile-score-normal">0</span> <span style="font-size:11px;color:#94a3b8;letter-spacing:1px;">pts</span></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Hard</div>
+              <div class="stat-value"><span id="profile-score-hard">0</span> <span style="font-size:11px;color:#94a3b8;letter-spacing:1px;">pts</span></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Extra</div>
+              <div class="stat-value"><span id="profile-score-extra">0</span> <span style="font-size:11px;color:#94a3b8;letter-spacing:1px;">pts</span></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Time</div>
+              <div class="stat-value"><span id="profile-score-time">0</span> <span style="font-size:11px;color:#94a3b8;letter-spacing:1px;">pts</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="profile-section-title">Recent Activity</div>
+          <div class="profile-activity">
+            <div class="activity-item">
+              <div class="activity-left">
+                <div class="activity-icon">▶</div>
+                <div>
+                  <div style="font-size:13px;">Play a game to start tracking activity</div>
+                  <div class="activity-meta">Your recent sessions will appear here.</div>
+                </div>
+              </div>
+              <div style="color:#6c7b96;font-size:12px;">—</div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 </div>
@@ -1174,6 +1347,7 @@ const onboardingAvatarEl = document.getElementById('player-avatar-input');
 const onboardingAvatarPreviewEl = document.getElementById('player-avatar-preview');
 const savePlayerBtnEl = document.getElementById('save-player-btn');
 const profileHeadingEl = document.getElementById('profile-heading');
+const profileAvatarImgEl = document.getElementById('profile-avatar-img');
 const profileBackBtnEl = document.getElementById('profile-back-btn');
 const resetScoresBtnEl = document.getElementById('reset-scores-btn');
 const profileScoreNormalEl = document.getElementById('profile-score-normal');
@@ -1440,6 +1614,9 @@ function refreshProfileEditingState() {
   if (onboardingPinEl) onboardingPinEl.readOnly = true;
   if (onboardingAvatarEl) onboardingAvatarEl.disabled = true;
   if (savePlayerBtnEl) savePlayerBtnEl.style.display = onboarded ? 'none' : 'inline-flex';
+  const displayName = (playerProfile && playerProfile.name) ? playerProfile.name : (currentUserName || 'Player');
+  if (profileHeadingEl) profileHeadingEl.textContent = displayName;
+  if (profileAvatarImgEl) profileAvatarImgEl.src = avatarFallback(displayName);
 }
 
 function walletValid(addr) {
