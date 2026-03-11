@@ -94,6 +94,15 @@ html,body{
 }
 .screen.active{opacity:1;pointer-events:all;transform:none}
 
+@media (prefers-reduced-motion: reduce){
+  *{
+    animation-duration:0.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.001ms !important;
+    scroll-behavior:auto !important;
+  }
+}
+
 /* ══ MENU ══ */
 #menu-screen{
   gap:0;
@@ -1627,6 +1636,7 @@ let supabaseEnabled = false;
 let supabaseInitTried = false;
 let supabaseRuntimeConfig = null;
 let sharedLevelsLoaded = false;
+let leaderboardLoading = false;
 let timerRemainingMs = 0;
 let timerHandle = 0;
 let timerWaves = 0;
@@ -1854,15 +1864,20 @@ sliderWrap.addEventListener('click', e => {
   setSlider(best);
 });
 
+let resizeRaf = 0;
 window.addEventListener('resize', () => {
-  setSlider(sliderIndex, false);
-  sizeConfettiCanvas();
-  if (document.getElementById('game-screen').classList.contains('active') && grid) {
-    resizeCanvas(); drawBoard(); placePlayer(false);
-  }
-  if (document.getElementById('editor-screen').classList.contains('active')) {
-    renderEditor();
-  }
+  if (resizeRaf) cancelAnimationFrame(resizeRaf);
+  resizeRaf = requestAnimationFrame(() => {
+    setSlider(sliderIndex, false);
+    sizeConfettiCanvas();
+    if (document.getElementById('game-screen').classList.contains('active') && grid) {
+      resizeCanvas(); drawBoard(); placePlayer(false);
+    }
+    if (document.getElementById('editor-screen').classList.contains('active')) {
+      renderEditor();
+    }
+    resizeRaf = 0;
+  });
 });
 window.addEventListener('load', () => setSlider(0, false));
 setTimeout(() => setSlider(0, false), 150);
@@ -2435,6 +2450,8 @@ async function pushLeaderboardToSupabase(item) {
 
 async function pullLeaderboardFromSupabase() {
   if (!supabaseEnabled || !supabaseClient) return;
+  if (leaderboardLoading) return;
+  leaderboardLoading = true;
   try {
     const { data, error } = await supabaseClient
       .from('maze_leaderboard')
@@ -2463,6 +2480,7 @@ async function pullLeaderboardFromSupabase() {
     persistLeaderboard();
     renderLeaderboard();
   } catch (_) {}
+  finally { leaderboardLoading = false; }
 }
 
 function loadAchievements() {
