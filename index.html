@@ -25,7 +25,7 @@
 
 html,body{
   width:100%;height:100%;
-  background:var(--bg);
+  background:#0c0c0e;
   color:var(--white);
   font-family:'Satoshi','Inter',sans-serif;
   overflow:hidden;
@@ -34,6 +34,32 @@ html,body{
   user-select:none;
   -webkit-user-select:none;
   -webkit-tap-highlight-color:transparent;
+}
+
+/* Global animated grid background */
+.app-bg{
+  position:fixed;inset:0;z-index:-1;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size:40px 40px;
+  opacity:0.45;
+  overflow:hidden;
+}
+.app-bg::after{
+  content:"";
+  position:absolute;
+  width:26px;height:26px;border-radius:50%;
+  background:#ffffff;
+  box-shadow:0 0 24px rgba(255,255,255,0.4);
+  animation:moveBall 14s linear infinite;
+}
+@keyframes moveBall{
+  0%{transform:translate(10vw,15vh);}
+  25%{transform:translate(70vw,18vh);}
+  50%{transform:translate(70vw,70vh);}
+  75%{transform:translate(18vw,70vh);}
+  100%{transform:translate(10vw,15vh);}
 }
 
 /* ── SCREENS ── */
@@ -1110,6 +1136,7 @@ html,body{
 </style>
 </head>
 <body>
+<div class="app-bg"></div>
 
 <!-- ══ MENU ══ -->
 <div id="menu-screen" class="screen active">
@@ -1162,9 +1189,6 @@ html,body{
 </div>
 
 <div id="signin-screen" class="screen auth-screen">
-  <div class="auth-bg"></div>
-  <div class="auth-orb one"></div>
-  <div class="auth-orb two"></div>
   <div class="auth-brand">
     <div class="auth-logo">▦</div>
     <div class="auth-title auth-hero">MAZE<br>PAINT</div>
@@ -1196,9 +1220,6 @@ html,body{
 </div>
 
 <div id="signup-screen" class="screen auth-screen">
-  <div class="auth-bg"></div>
-  <div class="auth-orb one"></div>
-  <div class="auth-orb two"></div>
   <div class="auth-brand">
     <div class="auth-logo">▦</div>
     <div class="auth-title auth-hero">MAZE<br>PAINT</div>
