@@ -39,27 +39,47 @@ html,body{
 /* Global animated grid background */
 .app-bg{
   position:fixed;inset:0;z-index:-1;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size:40px 40px;
-  opacity:0.45;
+  background:
+    radial-gradient(circle at center, #1e293b 0%, #0a0f1a 100%),
+    radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size:cover, 40px 40px;
+  background-position:center, 0 0;
+  opacity:1;
   overflow:hidden;
+  animation:gridDrift 28s linear infinite;
 }
+.app-bg::before,
 .app-bg::after{
   content:"";
   position:absolute;
   width:26px;height:26px;border-radius:50%;
   background:#ffffff;
-  box-shadow:0 0 24px rgba(255,255,255,0.4);
-  animation:moveBall 14s linear infinite;
+  box-shadow:0 0 24px rgba(255,255,255,0.35);
 }
-@keyframes moveBall{
-  0%{transform:translate(10vw,15vh);}
-  25%{transform:translate(70vw,18vh);}
-  50%{transform:translate(70vw,70vh);}
-  75%{transform:translate(18vw,70vh);}
-  100%{transform:translate(10vw,15vh);}
+.app-bg::before{
+  animation:moveBallA 16s cubic-bezier(0.4,0,0.2,1) infinite;
+}
+.app-bg::after{
+  width:18px;height:18px;opacity:0.7;
+  animation:moveBallB 20s cubic-bezier(0.4,0,0.2,1) infinite;
+}
+@keyframes gridDrift{
+  0%{background-position:center, 0 0;}
+  100%{background-position:center, 80px 80px;}
+}
+@keyframes moveBallA{
+  0%{transform:translate(8vw,18vh);}
+  25%{transform:translate(72vw,18vh);}
+  50%{transform:translate(72vw,72vh);}
+  75%{transform:translate(18vw,72vh);}
+  100%{transform:translate(8vw,18vh);}
+}
+@keyframes moveBallB{
+  0%{transform:translate(20vw,28vh);}
+  25%{transform:translate(58vw,28vh);}
+  50%{transform:translate(58vw,62vh);}
+  75%{transform:translate(20vw,62vh);}
+  100%{transform:translate(20vw,28vh);}
 }
 
 /* ── SCREENS ── */
@@ -78,15 +98,7 @@ html,body{
 #menu-screen{
   gap:0;
   padding:32px 24px;
-  background:radial-gradient(circle at center, #1e293b 0%, #0a0f1a 100%);
-}
-#menu-screen::before{
-  content:'';
-  position:absolute;inset:0;
-  background-image:radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
-  background-size:40px 40px;
-  opacity:0.35;
-  pointer-events:none;
+  background:transparent;
 }
 #menu-screen::after{
   content:'';
@@ -551,26 +563,12 @@ html,body{
 
 /* ══ AUTH (SIGN IN / SIGN UP) ══ */
 .auth-screen{
-  background:#0c0c0e;
+  background:transparent;
   align-items:center;
   justify-content:center;
   padding:24px;
   overflow:hidden;
 }
-.auth-bg{
-  position:fixed;inset:0;z-index:0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size:40px 40px;
-  opacity:0.4;
-}
-.auth-orb{
-  position:fixed;border-radius:50%;filter:blur(120px);opacity:0.5;z-index:0;
-  background:rgba(255,255,255,0.08);
-}
-.auth-orb.one{top:-10%;left:-10%;width:40%;height:40%;}
-.auth-orb.two{bottom:-10%;right:-10%;width:40%;height:40%;}
 .auth-brand{
   position:relative;z-index:1;text-align:center;margin-bottom:24px;
 }
@@ -675,7 +673,7 @@ html,body{
   align-items:center;
   padding:0;
   overflow:auto;
-  background:#0f1115;
+  background:transparent;
 }
 .lb-shell{
   width:100%;
@@ -804,7 +802,7 @@ html,body{
   align-items:center;
   padding:0;
   overflow:auto;
-  background:#0f1115;
+  background:transparent;
 }
 .ach-shell{
   width:100%;
@@ -875,7 +873,7 @@ html,body{
   align-items:center;
   padding:0;
   overflow:auto;
-  background:#0f1115;
+  background:transparent;
 }
 .profile-shell{
   width:100%;
