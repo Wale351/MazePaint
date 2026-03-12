@@ -1481,6 +1481,8 @@ html,body{
     <button class="btn btn-ghost" id="editor-clear">Clear</button>
     <button class="btn btn-ghost" id="editor-set-daily">Set Daily Challenge</button>
     <button class="btn btn-ghost" id="editor-save">Save Level</button>
+    <button class="btn btn-ghost" id="editor-export-add">Add To Export</button>
+    <button class="btn btn-ghost" id="editor-export-download">Download Export</button>
     <button class="btn" id="editor-play">Play This Level</button>
     <button class="btn btn-ghost" id="editor-back">Back</button>
   </div>
@@ -1606,6 +1608,7 @@ const DAILY_STATUS_KEY = 'maze_paint_daily_status_v1';
 const DAILY_CUSTOM_LEVEL_KEY = 'maze_paint_daily_custom_level_v1';
 const DAILY_CUSTOM_POOL_KEY = 'maze_paint_daily_custom_pool_v1';
 const STATS_KEY = 'maze_paint_stats_v1';
+const EDITOR_EXPORT_KEY = 'maze_paint_editor_export_v1';
 const SUPABASE_URL_KEY = 'maze_paint_supabase_url';
 const SUPABASE_ANON_KEY = 'maze_paint_supabase_anon_key';
 const USERS_KEY = 'maze_paint_users_v1';
@@ -1726,6 +1729,8 @@ const editorRowsEl = document.getElementById('editor-rows');
 const editorColsEl = document.getElementById('editor-cols');
 const editorGridApplyBtn = document.getElementById('editor-grid-apply');
 const editorAutoGenBtn = document.getElementById('editor-autogen');
+const editorExportAddBtn = document.getElementById('editor-export-add');
+const editorExportDownloadBtn = document.getElementById('editor-export-download');
 const loadingOverlayEl = document.getElementById('loading-overlay');
 const loadingTextEl = document.getElementById('loading-text');
 const ectx           = editorCanvas.getContext('2d');
@@ -5428,6 +5433,64 @@ function buildEditorPayload() {
   };
 }
 
+function getEditorExportList() {
+  try {
+    const raw = localStorage.getItem(EDITOR_EXPORT_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function saveEditorExportList(list) {
+  try { localStorage.setItem(EDITOR_EXPORT_KEY, JSON.stringify(list)); } catch (_) {}
+}
+
+function addEditorExportLevel() {
+  const payload = buildEditorPayload();
+  if (!payload) return;
+  const { chosenMode, chosenLevel } = getEditorTarget();
+  const list = getEditorExportList();
+  const entry = {
+    mode: chosenMode,
+    level: chosenLevel,
+    rows: payload.rows,
+    cols: payload.cols,
+    sr: payload.sr,
+    sc: payload.sc,
+    grid: Array.from(payload.g)
+  };
+  const filtered = list.filter(item => !(item && item.mode === chosenMode && item.level === chosenLevel));
+  filtered.push(entry);
+  filtered.sort((a, b) => {
+    if (a.mode !== b.mode) return String(a.mode).localeCompare(String(b.mode));
+    return (a.level || 0) - (b.level || 0);
+  });
+  saveEditorExportList(filtered);
+  editorStatus.classList.remove('bad');
+  editorStatus.classList.add('ok');
+  editorStatus.textContent = `Added to export list (${filtered.length} levels).`;
+}
+
+function downloadEditorExportList() {
+  const list = getEditorExportList();
+  if (!list.length) { alert('Export list is empty. Add levels first.'); return; }
+  const json = JSON.stringify(list, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'maze_paint_levels_export.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  editorStatus.classList.remove('bad');
+  editorStatus.classList.add('ok');
+  editorStatus.textContent = `Exported ${list.length} levels to JSON.`;
+}
+
 function saveCustomLevelFromEditor() {
   const payload = buildEditorPayload();
   if (!payload) return;
@@ -5494,6 +5557,8 @@ document.getElementById('editor-clear').addEventListener('click', () => {
 });
 document.getElementById('editor-save').addEventListener('click', saveCustomLevelFromEditor);
 document.getElementById('editor-set-daily').addEventListener('click', setDailyChallengeFromEditor);
+if (editorExportAddBtn) editorExportAddBtn.addEventListener('click', addEditorExportLevel);
+if (editorExportDownloadBtn) editorExportDownloadBtn.addEventListener('click', downloadEditorExportList);
 document.getElementById('editor-play').addEventListener('click', playCustomLevelFromEditor);
 document.getElementById('editor-back').addEventListener('click', () => showScreen('menu-screen'));
 
